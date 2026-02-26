@@ -32,3 +32,14 @@ google-services.json
 
 # Android Profiling
 *.hprof
+
+# Backend Spring Boot
+backend\.gradle\
+backend\build\
+backend\target\
+*.jar
+
+# Secrets — NUNCA subir
+*.env
+application-prod.yml
+google-services.json
