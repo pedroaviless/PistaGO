@@ -9,13 +9,18 @@ spring:
     driver-class-name: org.postgresql.Driver
 
   jpa:
+    open-in-view: false
     hibernate:
       ddl-auto: create-drop
     show-sql: true
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
 
 server:
   port: 9090
+
+pistago:
+  jwt:
+    secret: 4b6150645367566b5970337336763979244226452948404d6351665468576d5a
+    expiration: 86400000
