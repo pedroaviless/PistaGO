@@ -17,13 +17,8 @@ class ReservaController(
     fun crear(
         @AuthenticationPrincipal email: String,
         @RequestBody request: ReservaRequest
-    ): ResponseEntity<ReservaResponse> {
-        return try {
-            ResponseEntity.ok(reservaService.crear(email, request))
-        } catch (e: IllegalArgumentException) {
-            ResponseEntity.badRequest().build()
-        }
-    }
+    ): ResponseEntity<ReservaResponse> =
+        ResponseEntity.ok(reservaService.crear(email, request))
 
     @GetMapping("/mis-reservas")
     fun getMisReservas(
@@ -35,11 +30,6 @@ class ReservaController(
     fun cancelar(
         @AuthenticationPrincipal email: String,
         @PathVariable id: Long
-    ): ResponseEntity<ReservaResponse> {
-        return try {
-            ResponseEntity.ok(reservaService.cancelar(email, id))
-        } catch (e: IllegalArgumentException) {
-            ResponseEntity.badRequest().build()
-        }
-    }
+    ): ResponseEntity<ReservaResponse> =
+        ResponseEntity.ok(reservaService.cancelar(email, id))
 }

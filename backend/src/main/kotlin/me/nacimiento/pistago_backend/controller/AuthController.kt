@@ -14,20 +14,10 @@ class AuthController(
 ) {
 
     @PostMapping("/register")
-    fun register(@RequestBody request: RegisterRequest): ResponseEntity<AuthResponse> {
-        return try {
-            ResponseEntity.ok(authService.register(request))
-        } catch (e: IllegalArgumentException) {
-            ResponseEntity.badRequest().build()
-        }
-    }
+    fun register(@RequestBody request: RegisterRequest): ResponseEntity<AuthResponse> =
+        ResponseEntity.ok(authService.register(request))
 
     @PostMapping("/login")
-    fun login(@RequestBody request: LoginRequest): ResponseEntity<AuthResponse> {
-        return try {
-            ResponseEntity.ok(authService.login(request))
-        } catch (e: IllegalArgumentException) {
-            ResponseEntity.status(401).build()
-        }
-    }
+    fun login(@RequestBody request: LoginRequest): ResponseEntity<AuthResponse> =
+        ResponseEntity.ok(authService.login(request))
 }
