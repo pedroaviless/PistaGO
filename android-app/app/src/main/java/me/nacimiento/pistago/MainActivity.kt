@@ -4,44 +4,104 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.runtime.*
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import dagger.hilt.android.AndroidEntryPoint
+import me.nacimiento.pistago.presentation.navigation.Routes
+import me.nacimiento.pistago.presentation.screens.auth.LoginScreen
+import me.nacimiento.pistago.presentation.screens.auth.RegisterScreen
+import me.nacimiento.pistago.presentation.screens.home.HomeScreen
+import me.nacimiento.pistago.presentation.screens.perfil.PerfilScreen
+import me.nacimiento.pistago.presentation.screens.pistas.PistasScreen
+import me.nacimiento.pistago.presentation.screens.reservas.MisReservasScreen
+import me.nacimiento.pistago.presentation.screens.reservas.ReservarScreen
 import me.nacimiento.pistago.ui.theme.PistaGOTheme
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             PistaGOTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
+                val navController = rememberNavController()
+
+                NavHost(
+                    navController = navController,
+                    startDestination = Routes.LOGIN
+                ) {
+                    composable(Routes.LOGIN) {
+                        LoginScreen(
+                            onLoginSuccess = {
+                                navController.navigate(Routes.HOME) {
+                                    popUpTo(Routes.LOGIN) { inclusive = true }
+                                }
+                            },
+                            onNavigateToRegister = {
+                                navController.navigate(Routes.REGISTER)
+                            }
+                        )
+                    }
+
+                    composable(Routes.REGISTER) {
+                        RegisterScreen(
+                            onRegisterSuccess = {
+                                navController.navigate(Routes.HOME) {
+                                    popUpTo(Routes.LOGIN) { inclusive = true }
+                                }
+                            },
+                            onNavigateToLogin = {
+                                navController.popBackStack()
+                            }
+                        )
+                    }
+
+                    composable(Routes.HOME) {
+                        HomeScreen(
+                            onNavigateToPistas = { navController.navigate(Routes.PISTAS) },
+                            onNavigateToMisReservas = { navController.navigate(Routes.MIS_RESERVAS) },
+                            onNavigateToPerfil = { navController.navigate(Routes.PERFIL) }
+                        )
+                    }
+
+                    composable(Routes.PISTAS) {
+                        PistasScreen(
+                            onPistaClick = { pistaId ->
+                                navController.navigate(Routes.reservar(pistaId))
+                            }
+                        )
+                    }
+
+                    composable(Routes.RESERVAR) { backStackEntry ->
+                        val pistaId = backStackEntry.arguments?.getString("pistaId")?.toLong() ?: 0L
+                        ReservarScreen(
+                            pistaId = pistaId,
+                            onReservaCreada = {
+                                navController.navigate(Routes.MIS_RESERVAS) {
+                                    popUpTo(Routes.HOME)
+                                }
+                            },
+                            onBack = { navController.popBackStack() }
+                        )
+                    }
+
+                    composable(Routes.MIS_RESERVAS) {
+                        MisReservasScreen()
+                    }
+
+                    composable(Routes.PERFIL) {
+                        PerfilScreen(
+                            onLogout = {
+                                navController.navigate(Routes.LOGIN) {
+                                    popUpTo(Routes.HOME) { inclusive = true }
+                                }
+                            }
+                        )
+                    }
                 }
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    PistaGOTheme {
-        Greeting("Android")
     }
 }
