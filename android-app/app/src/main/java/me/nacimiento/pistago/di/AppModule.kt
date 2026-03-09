@@ -4,6 +4,8 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.runBlocking
 import me.nacimiento.pistago.data.local.TokenDataStore
 import me.nacimiento.pistago.data.remote.api.PistaGoApi
 import okhttp3.OkHttpClient
@@ -38,13 +40,12 @@ object AppModule {
             .writeTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
             .addInterceptor { chain ->
                 val requestBuilder = chain.request().newBuilder()
-                var token: String? = null
-                kotlinx.coroutines.runBlocking {
-                    tokenDataStore.token.collect {
-                        token = it
-                        return@collect
-                    }
+                
+                // Obtenemos el token de forma bloqueante pero solo el primer valor disponible
+                val token = runBlocking {
+                    tokenDataStore.token.firstOrNull()
                 }
+                
                 token?.let {
                     requestBuilder.addHeader("Authorization", "Bearer $it")
                 }
