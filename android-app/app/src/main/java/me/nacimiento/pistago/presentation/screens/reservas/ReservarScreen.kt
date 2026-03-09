@@ -7,7 +7,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import me.nacimiento.pistago.presentation.viewmodel.ReservaViewModel
 
@@ -31,12 +33,25 @@ fun ReservarScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Reservar pista") },
+                title = {
+                    Text(
+                        text = "Reservar pista",
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Volver",
+                            tint = MaterialTheme.colorScheme.onPrimary
+                        )
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary
+                )
             )
         }
     ) { padding ->
@@ -50,7 +65,8 @@ fun ReservarScreen(
         ) {
             Text(
                 text = "Selecciona fecha y hora",
-                style = MaterialTheme.typography.titleLarge
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
             )
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -61,7 +77,8 @@ fun ReservarScreen(
                 label = { Text("Fecha (YYYY-MM-DD)") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
-                placeholder = { Text("2026-03-10") }
+                placeholder = { Text("2026-03-10") },
+                shape = MaterialTheme.shapes.medium
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -72,7 +89,8 @@ fun ReservarScreen(
                 label = { Text("Hora (HH:MM)") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
-                placeholder = { Text("10:00") }
+                placeholder = { Text("10:00") },
+                shape = MaterialTheme.shapes.medium
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -93,8 +111,11 @@ fun ReservarScreen(
                     val fechaHora = "${fecha}T${hora}:00"
                     viewModel.crearReserva(pistaId, fechaHora)
                 },
-                modifier = Modifier.fillMaxWidth(),
-                enabled = !uiState.isLoading && fecha.isNotBlank() && hora.isNotBlank()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp),
+                enabled = !uiState.isLoading && fecha.isNotBlank() && hora.isNotBlank(),
+                shape = MaterialTheme.shapes.extraLarge
             ) {
                 if (uiState.isLoading) {
                     CircularProgressIndicator(
@@ -103,7 +124,11 @@ fun ReservarScreen(
                         color = MaterialTheme.colorScheme.onPrimary
                     )
                 } else {
-                    Text("Confirmar reserva")
+                    Text(
+                        text = "CONFIRMAR RESERVA",
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.sp
+                    )
                 }
             }
         }

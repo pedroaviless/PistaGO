@@ -25,9 +25,12 @@ fun PerfilScreen(
     viewModel: AuthViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    var loggedOut by remember { mutableStateOf(false) }
 
-    LaunchedEffect(uiState.usuario) {
-        if (uiState.usuario == null && !uiState.isLoading) onLogout()
+    LaunchedEffect(uiState.usuario, uiState.isLoading) {
+        if (!uiState.isLoading && uiState.usuario == null && loggedOut) {
+            onLogout()
+        }
     }
 
     Scaffold(
@@ -111,7 +114,10 @@ fun PerfilScreen(
             Spacer(modifier = Modifier.weight(1f))
 
             Button(
-                onClick = { viewModel.logout() },
+                onClick = {
+                    loggedOut = true
+                    viewModel.logout()
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp),

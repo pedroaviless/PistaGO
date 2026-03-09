@@ -51,4 +51,20 @@ class AuthRepositoryImpl @Inject constructor(
     override suspend fun getToken(): String? {
         return tokenDataStore.token.first()
     }
+
+    override suspend fun getUsuarioActual(): Result<Usuario?> {
+        return try {
+            val token = tokenDataStore.token.first()
+            val email = tokenDataStore.email.first()
+            val nombre = tokenDataStore.nombre.first()
+            val rol = tokenDataStore.rol.first()
+            if (token != null && email != null && nombre != null && rol != null) {
+                Result.success(Usuario(token, email, nombre, rol))
+            } else {
+                Result.success(null)
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }
