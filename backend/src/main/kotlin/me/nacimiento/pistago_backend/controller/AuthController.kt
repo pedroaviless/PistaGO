@@ -1,5 +1,6 @@
 package me.nacimiento.pistago_backend.controller
 
+import me.nacimiento.pistago_backend.config.JwtService
 import me.nacimiento.pistago_backend.dto.AuthResponse
 import me.nacimiento.pistago_backend.dto.LoginRequest
 import me.nacimiento.pistago_backend.dto.RegisterRequest
@@ -10,7 +11,8 @@ import org.springframework.web.bind.annotation.*
 @RestController
 @RequestMapping("/api/auth")
 class AuthController(
-    private val authService: AuthService
+    private val authService: AuthService,
+    private val jwtService: JwtService
 ) {
 
     @PostMapping("/register")
@@ -20,4 +22,16 @@ class AuthController(
     @PostMapping("/login")
     fun login(@RequestBody request: LoginRequest): ResponseEntity<AuthResponse> =
         ResponseEntity.ok(authService.login(request))
+
+    @PostMapping("/fcm-token")
+    fun updateFcmToken(
+        @RequestHeader("Authorization") authHeader: String,
+        @RequestBody body: Map<String, String>
+    ): ResponseEntity<Void> {
+        val token = authHeader.removePrefix("Bearer ")
+        val email = jwtService.extractEmail(token)
+        authService.updateFcmToken(email, body["fcmToken"] ?: return ResponseEntity.badRequest().build())
+        return ResponseEntity.ok().build()
+    }
+
 }

@@ -18,10 +18,17 @@ import me.nacimiento.pistago.presentation.screens.pistas.PistasScreen
 import me.nacimiento.pistago.presentation.screens.reservas.MisReservasScreen
 import me.nacimiento.pistago.presentation.screens.reservas.ReservarScreen
 import me.nacimiento.pistago.ui.theme.PistaGOTheme
-
+import com.google.firebase.messaging.FirebaseMessaging
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+
+        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                val token = task.result
+                android.util.Log.d("FCM_TOKEN", "Token: $token")
+            }
+        }
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {

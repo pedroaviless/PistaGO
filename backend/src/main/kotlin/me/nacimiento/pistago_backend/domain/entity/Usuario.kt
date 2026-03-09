@@ -8,6 +8,7 @@ import java.time.LocalDateTime
 @Table(name = "usuarios")
 data class Usuario(
 
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long = 0,

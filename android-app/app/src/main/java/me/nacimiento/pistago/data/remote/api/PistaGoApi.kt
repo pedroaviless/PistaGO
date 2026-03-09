@@ -9,6 +9,7 @@ import me.nacimiento.pistago.data.remote.dto.ReservaResponse
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.Header
 import retrofit2.http.PATCH
 import retrofit2.http.POST
 
@@ -37,4 +38,10 @@ interface PistaGoApi {
 
     @PATCH("api/reservas/{id}/cancelar")
     suspend fun cancelarReserva(@retrofit2.http.Path("id") id: Long): Response<ReservaResponse>
+
+    @POST("api/auth/fcm-token")
+    suspend fun updateFcmToken(
+        @Header("Authorization") authHeader: String,
+        @Body body: Map<String, String>
+    ): Response<Void>
 }

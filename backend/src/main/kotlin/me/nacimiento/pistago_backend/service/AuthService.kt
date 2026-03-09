@@ -66,4 +66,10 @@ class AuthService(
             rol = usuario.rol.name
         )
     }
+
+    fun updateFcmToken(email: String, fcmToken: String) {
+        val usuario = usuarioRepository.findByEmail(email)
+            ?: throw IllegalArgumentException("Usuario no encontrado")
+        usuarioRepository.save(usuario.copy(fcmToken = fcmToken))
+    }
 }
