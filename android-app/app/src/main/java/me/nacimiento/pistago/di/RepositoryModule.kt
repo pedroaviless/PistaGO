@@ -5,9 +5,11 @@ import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import me.nacimiento.pistago.data.repository.AuthRepositoryImpl
+import me.nacimiento.pistago.data.repository.ListaEsperaRepositoryImpl
 import me.nacimiento.pistago.data.repository.PistaRepositoryImpl
 import me.nacimiento.pistago.data.repository.ReservaRepositoryImpl
 import me.nacimiento.pistago.domain.repository.AuthRepository
+import me.nacimiento.pistago.domain.repository.ListaEsperaRepository
 import me.nacimiento.pistago.domain.repository.PistaRepository
 import me.nacimiento.pistago.domain.repository.ReservaRepository
 import javax.inject.Singleton
@@ -27,4 +29,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindReservaRepository(impl: ReservaRepositoryImpl): ReservaRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindListaEsperaRepository(impl: ListaEsperaRepositoryImpl): ListaEsperaRepository
 }

@@ -19,6 +19,8 @@ import me.nacimiento.pistago.presentation.screens.reservas.MisReservasScreen
 import me.nacimiento.pistago.presentation.screens.reservas.ReservarScreen
 import me.nacimiento.pistago.ui.theme.PistaGOTheme
 import com.google.firebase.messaging.FirebaseMessaging
+import me.nacimiento.pistago.presentation.screens.espera.ListaEsperaScreen
+
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -69,7 +71,8 @@ class MainActivity : ComponentActivity() {
                         HomeScreen(
                             onNavigateToPistas = { navController.navigate(Routes.PISTAS) },
                             onNavigateToMisReservas = { navController.navigate(Routes.MIS_RESERVAS) },
-                            onNavigateToPerfil = { navController.navigate(Routes.PERFIL) }
+                            onNavigateToPerfil = { navController.navigate(Routes.PERFIL) },
+                            onNavigateToListaEspera = { navController.navigate(Routes.LISTA_ESPERA) }
                         )
                     }
 
@@ -97,6 +100,10 @@ class MainActivity : ComponentActivity() {
 
                     composable(Routes.MIS_RESERVAS) {
                         MisReservasScreen(onBack = { navController.popBackStack() })
+                    }
+
+                    composable(Routes.LISTA_ESPERA) {
+                        ListaEsperaScreen()
                     }
 
                     composable(Routes.PERFIL) {

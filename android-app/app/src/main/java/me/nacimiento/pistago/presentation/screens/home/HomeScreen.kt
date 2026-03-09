@@ -19,7 +19,8 @@ import androidx.compose.ui.unit.sp
 fun HomeScreen(
     onNavigateToPistas: () -> Unit,
     onNavigateToMisReservas: () -> Unit,
-    onNavigateToPerfil: () -> Unit
+    onNavigateToPerfil: () -> Unit,
+    onNavigateToListaEspera: () -> Unit
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
 
@@ -61,7 +62,10 @@ fun HomeScreen(
                 )
                 NavigationBarItem(
                     selected = selectedTab == 2,
-                    onClick = { selectedTab = 2 },
+                    onClick = {
+                        selectedTab = 2
+                        onNavigateToListaEspera()
+                    },
                     icon = { Icon(Icons.Default.HourglassEmpty, contentDescription = null) },
                     label = { Text("Espera") }
                 )

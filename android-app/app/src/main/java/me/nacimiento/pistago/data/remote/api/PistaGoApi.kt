@@ -1,6 +1,8 @@
 package me.nacimiento.pistago.data.remote.api
 
 import me.nacimiento.pistago.data.remote.dto.AuthResponse
+import me.nacimiento.pistago.data.remote.dto.ListaEsperaRequest
+import me.nacimiento.pistago.data.remote.dto.ListaEsperaResponse
 import me.nacimiento.pistago.data.remote.dto.LoginRequest
 import me.nacimiento.pistago.data.remote.dto.PistaResponse
 import me.nacimiento.pistago.data.remote.dto.RegisterRequest
@@ -8,6 +10,7 @@ import me.nacimiento.pistago.data.remote.dto.ReservaRequest
 import me.nacimiento.pistago.data.remote.dto.ReservaResponse
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.PATCH
@@ -22,6 +25,15 @@ interface PistaGoApi {
     @POST("api/auth/login")
     suspend fun login(@Body request: LoginRequest): Response<AuthResponse>
 
+    // Lista de espera
+    @POST("api/lista-espera")
+    suspend fun apuntarseListaEspera(@Body request: ListaEsperaRequest): Response<ListaEsperaResponse>
+
+    @GET("api/lista-espera/mi-lista")
+    suspend fun getMiListaEspera(): Response<List<ListaEsperaResponse>>
+
+    @DELETE("api/lista-espera/{id}")
+    suspend fun salirListaEspera(@retrofit2.http.Path("id") id: Long): Response<Void>
     // Pistas
     @GET("api/pistas")
     suspend fun getPistas(): Response<List<PistaResponse>>
@@ -44,4 +56,5 @@ interface PistaGoApi {
         @Header("Authorization") authHeader: String,
         @Body body: Map<String, String>
     ): Response<Void>
+
 }

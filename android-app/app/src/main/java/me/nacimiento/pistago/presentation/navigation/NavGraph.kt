@@ -8,6 +8,7 @@ object Routes {
     const val RESERVAR = "reservar/{pistaId}"
     const val MIS_RESERVAS = "mis_reservas"
     const val PERFIL = "perfil"
+    const val LISTA_ESPERA = "lista_espera"
 
     fun reservar(pistaId: Long) = "reservar/$pistaId"
 }
