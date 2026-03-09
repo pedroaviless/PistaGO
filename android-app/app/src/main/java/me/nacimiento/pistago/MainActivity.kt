@@ -77,7 +77,8 @@ class MainActivity : ComponentActivity() {
                         PistasScreen(
                             onPistaClick = { pistaId ->
                                 navController.navigate(Routes.reservar(pistaId))
-                            }
+                            },
+                            onBack = { navController.popBackStack() }
                         )
                     }
 
@@ -95,7 +96,7 @@ class MainActivity : ComponentActivity() {
                     }
 
                     composable(Routes.MIS_RESERVAS) {
-                        MisReservasScreen()
+                        MisReservasScreen(onBack = { navController.popBackStack() })
                     }
 
                     composable(Routes.PERFIL) {
@@ -104,7 +105,8 @@ class MainActivity : ComponentActivity() {
                                 navController.navigate(Routes.LOGIN) {
                                     popUpTo(Routes.HOME) { inclusive = true }
                                 }
-                            }
+                            },
+                            onBack = { navController.popBackStack() }
                         )
                     }
                 }

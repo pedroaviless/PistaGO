@@ -6,9 +6,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import me.nacimiento.pistago.presentation.viewmodel.AuthViewModel
 
@@ -31,24 +34,37 @@ fun RegisterScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp),
+            .padding(32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
+        Text(text = "🎾", fontSize = 72.sp)
+
+        Spacer(modifier = Modifier.height(16.dp))
+
         Text(
-            text = "Crear cuenta",
+            text = "PistaGO",
             style = MaterialTheme.typography.headlineLarge,
+            fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.primary
         )
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Text(
+            text = "Crea tu cuenta",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.height(40.dp))
 
         OutlinedTextField(
             value = nombre,
             onValueChange = { nombre = it },
-            label = { Text("Nombre") },
+            label = { Text("Nombre completo") },
             modifier = Modifier.fillMaxWidth(),
-            singleLine = true
+            singleLine = true,
+            shape = MaterialTheme.shapes.medium
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -56,10 +72,11 @@ fun RegisterScreen(
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
-            label = { Text("Email") },
+            label = { Text("Correo electrónico") },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
             modifier = Modifier.fillMaxWidth(),
-            singleLine = true
+            singleLine = true,
+            shape = MaterialTheme.shapes.medium
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -71,7 +88,8 @@ fun RegisterScreen(
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             modifier = Modifier.fillMaxWidth(),
-            singleLine = true
+            singleLine = true,
+            shape = MaterialTheme.shapes.medium
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -85,10 +103,15 @@ fun RegisterScreen(
             Spacer(modifier = Modifier.height(8.dp))
         }
 
+        Spacer(modifier = Modifier.height(24.dp))
+
         Button(
             onClick = { viewModel.register(nombre, email, password) },
-            modifier = Modifier.fillMaxWidth(),
-            enabled = !uiState.isLoading && nombre.isNotBlank() && email.isNotBlank() && password.isNotBlank()
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(52.dp),
+            enabled = !uiState.isLoading && nombre.isNotBlank() && email.isNotBlank() && password.isNotBlank(),
+            shape = MaterialTheme.shapes.extraLarge
         ) {
             if (uiState.isLoading) {
                 CircularProgressIndicator(
@@ -97,14 +120,31 @@ fun RegisterScreen(
                     color = MaterialTheme.colorScheme.onPrimary
                 )
             } else {
-                Text("Registrarse")
+                Text(
+                    text = "REGISTRARSE",
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.sp
+                )
             }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        TextButton(onClick = onNavigateToLogin) {
-            Text("¿Ya tienes cuenta? Inicia sesión")
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = "¿Ya tienes cuenta? ",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            TextButton(
+                onClick = onNavigateToLogin,
+                contentPadding = PaddingValues(0.dp)
+            ) {
+                Text(
+                    text = "Inicia sesión aquí",
+                    fontWeight = FontWeight.Bold
+                )
+            }
         }
     }
 }
