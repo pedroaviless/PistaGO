@@ -60,4 +60,14 @@ class ReservaViewModel @Inject constructor(
     fun clearError() {
         _uiState.value = _uiState.value.copy(error = null)
     }
+    fun getTodasLasReservas() {
+        viewModelScope.launch {
+            _uiState.value = ReservaUiState(isLoading = true)
+            val result = reservaRepository.getTodasLasReservas()
+            result.fold(
+                onSuccess = { _uiState.value = ReservaUiState(reservas = it) },
+                onFailure = { _uiState.value = ReservaUiState(error = it.message) }
+            )
+        }
+    }
 }

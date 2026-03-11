@@ -77,5 +77,8 @@ interface PistaGoApi {
         @retrofit2.http.Path("id") id: Long,
         @retrofit2.http.Query("activa") activa: Boolean
     ): Response<PistaResponse>
+
+    @GET("api/reservas/todas")
+    suspend fun getTodasLasReservas(): Response<List<ReservaResponse>>
 }
 

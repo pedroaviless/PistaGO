@@ -80,4 +80,9 @@ class ReservaService(
         duracionMin = duracionMin,
         estado = estado
     )
+
+    @Transactional
+    fun getTodas(): List<ReservaResponse> {
+        return reservaRepository.findAll().map { it.toResponse() }
+    }
 }

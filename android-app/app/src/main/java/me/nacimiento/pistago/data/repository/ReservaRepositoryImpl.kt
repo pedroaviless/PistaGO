@@ -53,4 +53,20 @@ class ReservaRepositoryImpl @Inject constructor(
             Result.failure(e)
         }
     }
+    override suspend fun getTodasLasReservas(): Result<List<Reserva>> {
+        return try {
+            val response = api.getTodasLasReservas()
+            if (response.isSuccessful) {
+                val reservas = response.body()!!.map {
+                    Reserva(it.id, it.pistaId, it.nombrePista, it.usuarioId, it.nombreUsuario, it.fechaHora, it.duracionMin, it.estado)
+                }
+                Result.success(reservas)
+            } else {
+                Result.failure(Exception("Error: ${response.code()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
 }

@@ -32,4 +32,8 @@ class ReservaController(
         @PathVariable id: Long
     ): ResponseEntity<ReservaResponse> =
         ResponseEntity.ok(reservaService.cancelar(email, id))
+
+    @GetMapping("/todas")
+    fun getTodas(): ResponseEntity<List<ReservaResponse>> =
+        ResponseEntity.ok(reservaService.getTodas())
 }

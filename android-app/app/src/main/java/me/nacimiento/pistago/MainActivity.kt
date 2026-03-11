@@ -19,7 +19,9 @@ import me.nacimiento.pistago.presentation.screens.reservas.MisReservasScreen
 import me.nacimiento.pistago.presentation.screens.reservas.ReservarScreen
 import me.nacimiento.pistago.ui.theme.PistaGOTheme
 import com.google.firebase.messaging.FirebaseMessaging
+import me.nacimiento.pistago.presentation.screens.admin.AdminMenuScreen
 import me.nacimiento.pistago.presentation.screens.admin.AdminPistasScreen
+import me.nacimiento.pistago.presentation.screens.admin.AdminReservasScreen
 import me.nacimiento.pistago.presentation.screens.espera.ListaEsperaScreen
 
 @AndroidEntryPoint
@@ -42,6 +44,10 @@ class MainActivity : ComponentActivity() {
                     navController = navController,
                     startDestination = Routes.LOGIN
                 ) {
+                    composable(Routes.ADMIN_RESERVAS) {
+                        AdminReservasScreen(onBack = { navController.popBackStack() })
+                    }
+
                     composable(Routes.LOGIN) {
                         LoginScreen(
                             onLoginSuccess = {
@@ -74,10 +80,20 @@ class MainActivity : ComponentActivity() {
                             onNavigateToMisReservas = { navController.navigate(Routes.MIS_RESERVAS) },
                             onNavigateToPerfil = { navController.navigate(Routes.PERFIL) },
                             onNavigateToListaEspera = { navController.navigate(Routes.LISTA_ESPERA) },
-                            onNavigateToAdmin = { navController.navigate(Routes.ADMIN_PISTAS) }
+                            onNavigateToAdmin = { navController.navigate(Routes.ADMIN_MENU) }
+                        )
+                    }
+                    composable(Routes.ADMIN_MENU) {
+                        AdminMenuScreen(
+                            onNavigateToPistas = { navController.navigate(Routes.ADMIN_PISTAS) },
+                            onNavigateToReservas = { navController.navigate(Routes.ADMIN_RESERVAS) },
+                            onBack = { navController.popBackStack() }
                         )
                     }
 
+                    composable(Routes.ADMIN_RESERVAS) {
+                        AdminReservasScreen(onBack = { navController.popBackStack() })
+                    }
                     composable(Routes.PISTAS) {
                         PistasScreen(
                             onPistaClick = { pistaId ->
