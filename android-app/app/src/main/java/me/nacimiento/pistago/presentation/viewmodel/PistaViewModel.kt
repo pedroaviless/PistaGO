@@ -38,4 +38,45 @@ class PistaViewModel @Inject constructor(
             )
         }
     }
+
+    fun loadTodasLasPistas() {
+        viewModelScope.launch {
+            _uiState.value = PistaUiState(isLoading = true)
+            val result = pistaRepository.getTodasLasPistas()
+            result.fold(
+                onSuccess = { _uiState.value = PistaUiState(pistas = it) },
+                onFailure = { _uiState.value = PistaUiState(error = it.message) }
+            )
+        }
+    }
+
+    fun crearPista(nombre: String, tipo: String, descripcion: String?) {
+        viewModelScope.launch {
+            val result = pistaRepository.crearPista(nombre, tipo, descripcion)
+            result.fold(
+                onSuccess = { loadTodasLasPistas() },
+                onFailure = { _uiState.value = _uiState.value.copy(error = it.message) }
+            )
+        }
+    }
+
+    fun actualizarPista(id: Long, nombre: String, tipo: String, descripcion: String?) {
+        viewModelScope.launch {
+            val result = pistaRepository.actualizarPista(id, nombre, tipo, descripcion)
+            result.fold(
+                onSuccess = { loadTodasLasPistas() },
+                onFailure = { _uiState.value = _uiState.value.copy(error = it.message) }
+            )
+        }
+    }
+
+    fun setActivaPista(id: Long, activa: Boolean) {
+        viewModelScope.launch {
+            val result = pistaRepository.setActivaPista(id, activa)
+            result.fold(
+                onSuccess = { loadTodasLasPistas() },
+                onFailure = { _uiState.value = _uiState.value.copy(error = it.message) }
+            )
+        }
+    }
 }

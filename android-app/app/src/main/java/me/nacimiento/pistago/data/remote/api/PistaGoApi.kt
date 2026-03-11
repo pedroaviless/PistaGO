@@ -4,6 +4,7 @@ import me.nacimiento.pistago.data.remote.dto.AuthResponse
 import me.nacimiento.pistago.data.remote.dto.ListaEsperaRequest
 import me.nacimiento.pistago.data.remote.dto.ListaEsperaResponse
 import me.nacimiento.pistago.data.remote.dto.LoginRequest
+import me.nacimiento.pistago.data.remote.dto.PistaAdminRequest
 import me.nacimiento.pistago.data.remote.dto.PistaResponse
 import me.nacimiento.pistago.data.remote.dto.RegisterRequest
 import me.nacimiento.pistago.data.remote.dto.ReservaRequest
@@ -15,6 +16,7 @@ import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.PATCH
 import retrofit2.http.POST
+import retrofit2.http.PUT
 
 interface PistaGoApi {
 
@@ -57,4 +59,23 @@ interface PistaGoApi {
         @Body body: Map<String, String>
     ): Response<Void>
 
+    // Admin - Pistas
+    @GET("api/pistas/todas")
+    suspend fun todasLasPistas(): Response<List<PistaResponse>>
+
+    @POST("api/pistas")
+    suspend fun crearPista(@Body request: PistaAdminRequest): Response<PistaResponse>
+
+    @PUT("api/pistas/{id}")
+    suspend fun actualizarPista(
+        @retrofit2.http.Path("id") id: Long,
+        @Body request: PistaAdminRequest
+    ): Response<PistaResponse>
+
+    @PATCH("api/pistas/{id}/activa")
+    suspend fun setActivaPista(
+        @retrofit2.http.Path("id") id: Long,
+        @retrofit2.http.Query("activa") activa: Boolean
+    ): Response<PistaResponse>
 }
+

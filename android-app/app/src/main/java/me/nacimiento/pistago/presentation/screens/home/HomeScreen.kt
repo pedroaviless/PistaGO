@@ -2,6 +2,7 @@ package me.nacimiento.pistago.presentation.screens.home
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AdminPanelSettings
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.HourglassEmpty
 import androidx.compose.material.icons.filled.Person
@@ -13,6 +14,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import me.nacimiento.pistago.presentation.viewmodel.AuthViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -20,9 +23,13 @@ fun HomeScreen(
     onNavigateToPistas: () -> Unit,
     onNavigateToMisReservas: () -> Unit,
     onNavigateToPerfil: () -> Unit,
-    onNavigateToListaEspera: () -> Unit
+    onNavigateToListaEspera: () -> Unit,
+    onNavigateToAdmin: () -> Unit,
+    viewModel: AuthViewModel = hiltViewModel()
 ) {
+    val uiState by viewModel.uiState.collectAsState()
     var selectedTab by remember { mutableIntStateOf(0) }
+    val esAdmin = uiState.usuario?.rol == "ADMINISTRADOR"
 
     Scaffold(
         topBar = {
@@ -36,6 +43,17 @@ fun HomeScreen(
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onPrimary
                         )
+                    }
+                },
+                actions = {
+                    if (esAdmin) {
+                        IconButton(onClick = onNavigateToAdmin) {
+                            Icon(
+                                Icons.Default.AdminPanelSettings,
+                                contentDescription = "Admin",
+                                tint = MaterialTheme.colorScheme.onPrimary
+                            )
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
