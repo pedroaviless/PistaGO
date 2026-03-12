@@ -23,6 +23,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import me.nacimiento.pistago.presentation.viewmodel.PistaViewModel
 import me.nacimiento.pistago.presentation.viewmodel.ReservaViewModel
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -36,7 +37,8 @@ fun ReservarScreen(
     pistaId: Long,
     onReservaCreada: () -> Unit,
     onBack: () -> Unit,
-    viewModel: ReservaViewModel = hiltViewModel()
+    viewModel: ReservaViewModel = hiltViewModel(),
+    pistaViewModel: PistaViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -49,6 +51,11 @@ fun ReservarScreen(
         "13:00", "16:00", "17:00", "18:00", "19:00", "20:00"
     )
 
+    val nombrePista = pistaViewModel.pistaSeleccionada?.nombre ?: "Pista $pistaId"
+
+    LaunchedEffect(pistaId) {
+        pistaViewModel.getPistaById(pistaId)
+    }
     // Días de la semana (hoy + 6 días)
     val dias = (0..6).map { today.plusDays(it.toLong()) }
 
@@ -60,11 +67,19 @@ fun ReservarScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(
-                        text = "Reservar pista",
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onPrimary
-                    )
+                    Column {
+                        Text(
+                            text = "Reservar pista",
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        Text(
+                            text = nombrePista,
+                            color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f),
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {

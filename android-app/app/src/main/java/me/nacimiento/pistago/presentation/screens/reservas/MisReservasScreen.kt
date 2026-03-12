@@ -86,9 +86,15 @@ fun MisReservasScreen(
                     }
                     else -> {
                         val reservasFiltradas = if (selectedTab == 0) {
-                            uiState.reservas.filter { it.estado == "CONFIRMADA" }
+                            uiState.reservas.filter {
+                                it.estado == "CONFIRMADA" &&
+                                        java.time.LocalDateTime.parse(it.fechaHora).isAfter(java.time.LocalDateTime.now())
+                            }
                         } else {
-                            uiState.reservas.filter { it.estado != "CONFIRMADA" }
+                            uiState.reservas.filter {
+                                it.estado != "CONFIRMADA" ||
+                                        java.time.LocalDateTime.parse(it.fechaHora).isBefore(java.time.LocalDateTime.now())
+                            }
                         }
 
                         if (reservasFiltradas.isEmpty()) {
@@ -190,7 +196,8 @@ fun ReservaCard(reserva: Reserva, onCancelar: () -> Unit) {
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
-            if (reserva.estado == "CONFIRMADA") {
+            if (reserva.estado == "CONFIRMADA" &&
+                java.time.LocalDateTime.parse(reserva.fechaHora).isAfter(java.time.LocalDateTime.now()))  {
                 Spacer(modifier = Modifier.height(12.dp))
                 OutlinedButton(
                     onClick = { showDialog = true },

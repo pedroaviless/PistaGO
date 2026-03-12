@@ -136,7 +136,7 @@ fun PistaDialog(
     var nombre by remember { mutableStateOf(pista?.nombre ?: "") }
     var tipo by remember { mutableStateOf(pista?.tipo ?: "TIERRA_BATIDA") }
     var descripcion by remember { mutableStateOf(pista?.descripcion ?: "") }
-    val tipos = listOf("TIERRA_BATIDA", "CEMENTO", "HIERBA", "MOQUETA")
+    val tipos = listOf("TIERRA_BATIDA", "PISTA_DURA")
 
     AlertDialog(
         onDismissRequest = onDismiss,

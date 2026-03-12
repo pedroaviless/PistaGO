@@ -9,6 +9,9 @@ import kotlinx.coroutines.launch
 import me.nacimiento.pistago.domain.model.Pista
 import me.nacimiento.pistago.domain.repository.PistaRepository
 import javax.inject.Inject
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 
 data class PistaUiState(
     val isLoading: Boolean = false,
@@ -76,6 +79,19 @@ class PistaViewModel @Inject constructor(
             result.fold(
                 onSuccess = { loadTodasLasPistas() },
                 onFailure = { _uiState.value = _uiState.value.copy(error = it.message) }
+            )
+        }
+    }
+
+    var pistaSeleccionada by mutableStateOf<Pista?>(null)
+        private set
+
+    fun getPistaById(id: Long) {
+        viewModelScope.launch {
+            val result = pistaRepository.getPistaById(id)
+            result.fold(
+                onSuccess = { pistaSeleccionada = it },
+                onFailure = { }
             )
         }
     }

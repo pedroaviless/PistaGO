@@ -70,12 +70,30 @@ class ReservaService(
         return reservaRepository.save(cancelada).toResponse()
     }
 
+    @Transactional
     fun getHorasOcupadasPorFecha(fecha: String): List<String> {
         val inicio = java.time.LocalDate.parse(fecha).atStartOfDay()
         val fin = inicio.plusDays(1)
-        return reservaRepository.findByFechaHoraBetween(inicio, fin)
+
+        val reservasDelDia = reservaRepository.findByFechaHoraBetween(inicio, fin)
             .filter { it.estado == EstadoReserva.CONFIRMADA }
-            .map { it.fechaHora.toLocalTime().toString().substring(0, 5) }
+
+        val pistasActivasPorTipo = pistaRepository.findAll()
+            .filter { it.activa }
+            .groupBy { it.tipo }
+            .mapValues { it.value.size }
+
+        return reservasDelDia
+            .groupBy { it.fechaHora.toLocalTime().toString().substring(0, 5) }
+            .filter { (_, reservasHora) ->
+                val reservasPorTipo = reservasHora.groupBy { it.pista.tipo }.mapValues { it.value.size }
+                reservasPorTipo.all { (tipo, count) ->
+                    val totalPistas = pistasActivasPorTipo[tipo] ?: 0
+                    count >= totalPistas
+                }
+            }
+            .keys.toList()
+
     }
 
     private fun Reserva.toResponse() = ReservaResponse(

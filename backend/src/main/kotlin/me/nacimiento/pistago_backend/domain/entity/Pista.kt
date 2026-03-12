@@ -23,4 +23,6 @@ data class Pista(
     val activa: Boolean = true,
 
     val descripcion: String? = null
+
+
 )
