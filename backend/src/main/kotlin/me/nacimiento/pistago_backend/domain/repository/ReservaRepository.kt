@@ -12,6 +12,7 @@ interface ReservaRepository : JpaRepository<Reserva, Long> {
     fun findByUsuarioId(usuarioId: Long): List<Reserva>
     fun findByPistaIdAndEstado(pistaId: Long, estado: EstadoReserva): List<Reserva>
     fun findByUsuarioIdAndEstado(usuarioId: Long, estado: EstadoReserva): List<Reserva>
+    fun findByFechaHoraBetween(inicio: LocalDateTime, fin: LocalDateTime): List<Reserva>
 
     @Query("SELECT r FROM Reserva r WHERE r.pista.id = :pistaId AND r.fechaHora = :fechaHora AND r.estado = 'CONFIRMADA'")
     fun findReservaActiva(pistaId: Long, fechaHora: LocalDateTime): Reserva?

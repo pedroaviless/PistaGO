@@ -70,6 +70,14 @@ class ReservaService(
         return reservaRepository.save(cancelada).toResponse()
     }
 
+    fun getHorasOcupadasPorFecha(fecha: String): List<String> {
+        val inicio = java.time.LocalDate.parse(fecha).atStartOfDay()
+        val fin = inicio.plusDays(1)
+        return reservaRepository.findByFechaHoraBetween(inicio, fin)
+            .filter { it.estado == EstadoReserva.CONFIRMADA }
+            .map { it.fechaHora.toLocalTime().toString().substring(0, 5) }
+    }
+
     private fun Reserva.toResponse() = ReservaResponse(
         id = id!!,
         pistaId = pista.id!!,

@@ -14,7 +14,8 @@ data class ReservaUiState(
     val isLoading: Boolean = false,
     val reservas: List<Reserva> = emptyList(),
     val reservaCreada: Reserva? = null,
-    val error: String? = null
+    val error: String? = null,
+    val horasOcupadas: List<String> = emptyList()
 )
 
 @HiltViewModel
@@ -67,6 +68,16 @@ class ReservaViewModel @Inject constructor(
             result.fold(
                 onSuccess = { _uiState.value = ReservaUiState(reservas = it) },
                 onFailure = { _uiState.value = ReservaUiState(error = it.message) }
+            )
+        }
+    }
+
+    fun getDisponibilidad(fecha: String) {
+        viewModelScope.launch {
+            val result = reservaRepository.getDisponibilidad(fecha)
+            result.fold(
+                onSuccess = { _uiState.value = _uiState.value.copy(horasOcupadas = it) },
+                onFailure = { _uiState.value = _uiState.value.copy(error = it.message) }
             )
         }
     }

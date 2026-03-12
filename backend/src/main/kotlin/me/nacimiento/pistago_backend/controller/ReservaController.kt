@@ -36,4 +36,10 @@ class ReservaController(
     @GetMapping("/todas")
     fun getTodas(): ResponseEntity<List<ReservaResponse>> =
         ResponseEntity.ok(reservaService.getTodas())
+
+    @GetMapping("/disponibilidad")
+    fun getDisponibilidad(
+        @RequestParam fecha: String
+    ): ResponseEntity<List<String>> =
+        ResponseEntity.ok(reservaService.getHorasOcupadasPorFecha(fecha))
 }
