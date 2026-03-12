@@ -15,7 +15,7 @@ class ListaEsperaRepositoryImpl @Inject constructor(
             val response = api.apuntarseListaEspera(ListaEsperaRequest(pistaId, fechaHora))
             if (response.isSuccessful) {
                 val body = response.body()!!
-                Result.success(ListaEspera(body.id, body.pistaId, body.nombrePista, body.fechaHora, body.posicion, body.estado))
+                Result.success(ListaEspera(body.id, body.pistaId, body.nombrePista, body.fechaHora, body.posicion, "ACTIVO"))
             } else {
                 Result.failure(Exception("Error: ${response.code()}"))
             }
@@ -29,7 +29,7 @@ class ListaEsperaRepositoryImpl @Inject constructor(
             val response = api.getMiListaEspera()
             if (response.isSuccessful) {
                 val lista = response.body()!!.map {
-                    ListaEspera(it.id, it.pistaId, it.nombrePista, it.fechaHora, it.posicion, it.estado)
+                    ListaEspera(it.id, it.pistaId, it.nombrePista, it.fechaHora, it.posicion, "ACTIVO")
                 }
                 Result.success(lista)
             } else {

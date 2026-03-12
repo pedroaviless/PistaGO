@@ -95,6 +95,14 @@ class ReservaService(
             .keys.toList()
 
     }
+    @Transactional
+    fun getHorasOcupadasPorPistaYFecha(fecha: String, pistaId: Long): List<String> {
+        val inicio = java.time.LocalDate.parse(fecha).atStartOfDay()
+        val fin = inicio.plusDays(1)
+        return reservaRepository.findByFechaHoraBetween(inicio, fin)
+            .filter { it.estado == EstadoReserva.CONFIRMADA && it.pista.id == pistaId }
+            .map { it.fechaHora.toLocalTime().toString().substring(0, 5) }
+    }
 
     private fun Reserva.toResponse() = ReservaResponse(
         id = id!!,

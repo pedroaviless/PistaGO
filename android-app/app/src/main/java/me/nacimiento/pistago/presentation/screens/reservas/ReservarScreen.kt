@@ -3,9 +3,6 @@ package me.nacimiento.pistago.presentation.screens.reservas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -30,7 +27,6 @@ import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.util.Locale
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReservarScreen(
@@ -43,6 +39,7 @@ fun ReservarScreen(
     val uiState by viewModel.uiState.collectAsState()
 
     val today = LocalDate.now()
+    val snackbarHostState = remember { SnackbarHostState() }
     var selectedDate by remember { mutableStateOf(today) }
     var selectedHora by remember { mutableStateOf<String?>(null) }
 
@@ -56,14 +53,26 @@ fun ReservarScreen(
     LaunchedEffect(pistaId) {
         pistaViewModel.getPistaById(pistaId)
     }
-    // Días de la semana (hoy + 6 días)
+
     val dias = (0..6).map { today.plusDays(it.toLong()) }
 
     LaunchedEffect(uiState.reservaCreada) {
         if (uiState.reservaCreada != null) onReservaCreada()
     }
 
+    LaunchedEffect(uiState.apuntadoListaEspera) {
+        if (uiState.apuntadoListaEspera) {
+            snackbarHostState.showSnackbar("¡Apuntado a la lista de espera!")
+            viewModel.clearError()
+        }
+    }
+
+    LaunchedEffect(selectedDate, pistaId) {
+        viewModel.getDisponibilidad(selectedDate.toString(), pistaId)
+    }
+
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = {
@@ -103,7 +112,6 @@ fun ReservarScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(16.dp)
         ) {
-            // Selector de fecha
             Text(
                 text = "Selecciona el día",
                 style = MaterialTheme.typography.titleMedium,
@@ -151,12 +159,6 @@ fun ReservarScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            LaunchedEffect(selectedDate) {
-                viewModel.getDisponibilidad(selectedDate.toString())
-            }
-
-
-            // Fecha seleccionada
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     Icons.Default.CalendarMonth,
@@ -166,7 +168,9 @@ fun ReservarScreen(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = selectedDate.format(DateTimeFormatter.ofPattern("EEEE, d 'de' MMMM", Locale("es"))),
+                    text = selectedDate.format(
+                        DateTimeFormatter.ofPattern("EEEE, d 'de' MMMM", Locale("es"))
+                    ),
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.primary
@@ -175,7 +179,6 @@ fun ReservarScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Selector de hora
             Text(
                 text = "Selecciona la hora",
                 style = MaterialTheme.typography.titleMedium,
@@ -183,38 +186,61 @@ fun ReservarScreen(
                 modifier = Modifier.padding(bottom = 12.dp)
             )
 
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(4),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.height(160.dp)
-            ) {
-                items(franjas) { hora ->
-                    val ocupada = uiState.horasOcupadas.contains(hora)
-                    val isSelected = hora == selectedHora
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(
-                                when {
-                                    ocupada -> MaterialTheme.colorScheme.error
-                                    isSelected -> MaterialTheme.colorScheme.primary
-                                    else -> MaterialTheme.colorScheme.primaryContainer
+            val franjaChunks = franjas.chunked(4)
+            franjaChunks.forEach { fila ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    fila.forEach { hora ->
+                        val ocupada = uiState.horasOcupadas.contains(hora)
+                        val isSelected = hora == selectedHora
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(
+                                    when {
+                                        ocupada -> MaterialTheme.colorScheme.error
+                                        isSelected -> MaterialTheme.colorScheme.primary
+                                        else -> MaterialTheme.colorScheme.primaryContainer
+                                    }
+                                )
+                                .clickable {
+                                    if (!ocupada) {
+                                        selectedHora = hora
+                                    } else {
+                                        val fechaHora = "${selectedDate}T${hora}:00"
+                                        viewModel.apuntarseListaEspera(pistaId, fechaHora)
+                                    }
                                 }
-                            )
-                            .clickable(enabled = !ocupada) { selectedHora = hora }
-                            .padding(vertical = 10.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = hora,
-                            style = MaterialTheme.typography.bodySmall,
-                            fontWeight = FontWeight.Bold,
-                            color = if (ocupada || isSelected) Color.White else MaterialTheme.colorScheme.primary,
-                            textAlign = TextAlign.Center
-                        )
+                                .padding(vertical = 12.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(
+                                    text = hora,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (ocupada || isSelected) Color.White else MaterialTheme.colorScheme.primary,
+                                    textAlign = TextAlign.Center
+                                )
+                                if (ocupada) {
+                                    Text(
+                                        text = "+ espera",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = Color.White.copy(alpha = 0.9f),
+                                        textAlign = TextAlign.Center
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    repeat(4 - fila.size) {
+                        Spacer(modifier = Modifier.weight(1f))
                     }
                 }
+                Spacer(modifier = Modifier.height(8.dp))
             }
 
             Spacer(modifier = Modifier.height(16.dp))

@@ -15,12 +15,14 @@ data class ReservaUiState(
     val reservas: List<Reserva> = emptyList(),
     val reservaCreada: Reserva? = null,
     val error: String? = null,
-    val horasOcupadas: List<String> = emptyList()
+    val horasOcupadas: List<String> = emptyList(),
+    val apuntadoListaEspera: Boolean = false
 )
 
 @HiltViewModel
 class ReservaViewModel @Inject constructor(
-    private val reservaRepository: ReservaRepository
+    private val reservaRepository: ReservaRepository,
+    private val listaEsperaRepository: me.nacimiento.pistago.domain.repository.ListaEsperaRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ReservaUiState())
@@ -75,9 +77,18 @@ class ReservaViewModel @Inject constructor(
         _uiState.value = _uiState.value.copy(reservaCreada = null, error = null)
     }
 
-    fun getDisponibilidad(fecha: String) {
+    fun apuntarseListaEspera(pistaId: Long, fechaHora: String) {
         viewModelScope.launch {
-            val result = reservaRepository.getDisponibilidad(fecha)
+            val result = listaEsperaRepository.apuntarse(pistaId, fechaHora)
+            result.fold(
+                onSuccess = { _uiState.value = _uiState.value.copy(apuntadoListaEspera = true) },
+                onFailure = { _uiState.value = _uiState.value.copy(error = it.message) }
+            )
+        }
+    }
+    fun getDisponibilidad(fecha: String, pistaId: Long) {
+        viewModelScope.launch {
+            val result = reservaRepository.getDisponibilidad(fecha, pistaId)
             result.fold(
                 onSuccess = { _uiState.value = _uiState.value.copy(horasOcupadas = it) },
                 onFailure = { _uiState.value = _uiState.value.copy(error = it.message) }

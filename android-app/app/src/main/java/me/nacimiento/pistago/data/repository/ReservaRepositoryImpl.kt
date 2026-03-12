@@ -68,9 +68,9 @@ class ReservaRepositoryImpl @Inject constructor(
             Result.failure(e)
         }
     }
-    override suspend fun getDisponibilidad(fecha: String): Result<List<String>> {
+    override suspend fun getDisponibilidad(fecha: String, pistaId: Long): Result<List<String>> {
         return try {
-            val response = api.getDisponibilidad(fecha)
+            val response = api.getDisponibilidad(fecha, pistaId)
             if (response.isSuccessful) {
                 Result.success(response.body()!!)
             } else {

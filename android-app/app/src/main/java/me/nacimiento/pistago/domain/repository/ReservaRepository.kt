@@ -7,5 +7,5 @@ interface ReservaRepository {
     suspend fun getMisReservas(): Result<List<Reserva>>
     suspend fun cancelarReserva(id: Long): Result<Reserva>
     suspend fun getTodasLasReservas(): Result<List<Reserva>>
-    suspend fun getDisponibilidad(fecha: String): Result<List<String>>
+    suspend fun getDisponibilidad(fecha: String, pistaId: Long): Result<List<String>>
 }

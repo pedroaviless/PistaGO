@@ -6,5 +6,5 @@ data class ListaEspera(
     val nombrePista: String,
     val fechaHora: String,
     val posicion: Int,
-    val estado: String
+    val estado: String = "ACTIVO"
 )

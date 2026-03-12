@@ -39,7 +39,8 @@ class ReservaController(
 
     @GetMapping("/disponibilidad")
     fun getDisponibilidad(
-        @RequestParam fecha: String
+        @RequestParam fecha: String,
+        @RequestParam pistaId: Long
     ): ResponseEntity<List<String>> =
-        ResponseEntity.ok(reservaService.getHorasOcupadasPorFecha(fecha))
+        ResponseEntity.ok(reservaService.getHorasOcupadasPorPistaYFecha(fecha, pistaId))
 }

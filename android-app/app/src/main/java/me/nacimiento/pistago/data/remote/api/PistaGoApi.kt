@@ -82,6 +82,9 @@ interface PistaGoApi {
     suspend fun getTodasLasReservas(): Response<List<ReservaResponse>>
 
     @GET("api/reservas/disponibilidad")
-    suspend fun getDisponibilidad(@retrofit2.http.Query("fecha") fecha: String): Response<List<String>>
+    suspend fun getDisponibilidad(
+        @retrofit2.http.Query("fecha") fecha: String,
+        @retrofit2.http.Query("pistaId") pistaId: Long
+    ): Response<List<String>>
 }
 

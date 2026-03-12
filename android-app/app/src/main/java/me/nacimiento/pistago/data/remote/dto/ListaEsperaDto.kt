@@ -11,5 +11,6 @@ data class ListaEsperaResponse(
     val nombrePista: String,
     val fechaHora: String,
     val posicion: Int,
-    val estado: String
+    val estado: String = "ACTIVO",
+    val notificado: Boolean = false
 )
