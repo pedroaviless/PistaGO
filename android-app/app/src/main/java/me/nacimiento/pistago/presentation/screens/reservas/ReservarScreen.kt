@@ -29,6 +29,7 @@ import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.util.Locale
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReservarScreen(
@@ -135,6 +136,11 @@ fun ReservarScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            LaunchedEffect(selectedDate) {
+                viewModel.getDisponibilidad(selectedDate.toString())
+            }
+
+
             // Fecha seleccionada
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
@@ -169,17 +175,19 @@ fun ReservarScreen(
                 modifier = Modifier.height(160.dp)
             ) {
                 items(franjas) { hora ->
+                    val ocupada = uiState.horasOcupadas.contains(hora)
                     val isSelected = hora == selectedHora
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(8.dp))
                             .background(
                                 when {
+                                    ocupada -> MaterialTheme.colorScheme.error
                                     isSelected -> MaterialTheme.colorScheme.primary
                                     else -> MaterialTheme.colorScheme.primaryContainer
                                 }
                             )
-                            .clickable { selectedHora = hora }
+                            .clickable(enabled = !ocupada) { selectedHora = hora }
                             .padding(vertical = 10.dp),
                         contentAlignment = Alignment.Center
                     ) {
@@ -187,7 +195,7 @@ fun ReservarScreen(
                             text = hora,
                             style = MaterialTheme.typography.bodySmall,
                             fontWeight = FontWeight.Bold,
-                            color = if (isSelected) Color.White else MaterialTheme.colorScheme.primary,
+                            color = if (ocupada || isSelected) Color.White else MaterialTheme.colorScheme.primary,
                             textAlign = TextAlign.Center
                         )
                     }

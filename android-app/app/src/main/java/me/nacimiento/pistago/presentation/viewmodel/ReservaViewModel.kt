@@ -71,6 +71,9 @@ class ReservaViewModel @Inject constructor(
             )
         }
     }
+    fun clearReservaCreada() {
+        _uiState.value = _uiState.value.copy(reservaCreada = null, error = null)
+    }
 
     fun getDisponibilidad(fecha: String) {
         viewModelScope.launch {
