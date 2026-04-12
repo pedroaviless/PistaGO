@@ -116,7 +116,21 @@ fun HomeScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Text("🎾", fontSize = 64.sp)
+            Icon(
+                painter = painterResource(id = R.drawable.ic_pistago_logo),
+                contentDescription = "PistaGO",
+                tint = Color.Unspecified,
+                modifier = Modifier.size(120.dp)
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = "PistaGO",
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary
+            )
 
             Spacer(modifier = Modifier.height(24.dp))
 
