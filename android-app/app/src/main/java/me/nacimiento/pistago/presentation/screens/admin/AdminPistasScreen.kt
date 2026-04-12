@@ -15,6 +15,13 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import me.nacimiento.pistago.domain.model.Pista
 import me.nacimiento.pistago.presentation.viewmodel.PistaViewModel
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import me.nacimiento.pistago.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -60,6 +67,15 @@ fun AdminPistasScreen(
                         color = MaterialTheme.colorScheme.onPrimary
                     )
                 },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Volver",
+                            tint = MaterialTheme.colorScheme.onPrimary
+                        )
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primary
                 )
@@ -99,24 +115,76 @@ fun AdminPistasScreen(
 
 @Composable
 fun AdminPistaCard(pista: Pista, onEditar: () -> Unit, onToggleActiva: () -> Unit) {
+    val imageRes = if (pista.tipo == "TIERRA_BATIDA") {
+        R.drawable.pista_tierra
+    } else {
+        R.drawable.pista_dura
+    }
+
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        shape = RoundedCornerShape(12.dp)
     ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(text = pista.nombre, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                Text(text = pista.tipo, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
-                pista.descripcion?.let {
-                    Text(text = it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Column {
+            Box {
+                Image(
+                    painter = painterResource(id = imageRes),
+                    contentDescription = pista.nombre,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(120.dp)
+                        .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
+                )
+                // Badge activa/inactiva
+                Surface(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(8.dp),
+                    shape = RoundedCornerShape(50),
+                    color = if (pista.activa) MaterialTheme.colorScheme.primary
+                    else MaterialTheme.colorScheme.error
+                ) {
+                    Text(
+                        text = if (pista.activa) "Activa" else "Inactiva",
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
-            Column(horizontalAlignment = Alignment.End) {
+            Row(
+                modifier = Modifier.padding(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = pista.nombre,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = pista.tipo.replace("_", " "),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Medium
+                    )
+                    pista.descripcion?.let {
+                        Text(
+                            text = it,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
                 IconButton(onClick = onEditar) {
-                    Icon(Icons.Default.Edit, contentDescription = "Editar", tint = MaterialTheme.colorScheme.primary)
+                    Icon(
+                        Icons.Default.Edit,
+                        contentDescription = "Editar",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
                 }
                 Switch(
                     checked = pista.activa,
@@ -176,4 +244,10 @@ fun PistaDialog(
             TextButton(onClick = onDismiss) { Text("Cancelar") }
         }
     )
+    tipos.forEach { t ->
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            RadioButton(selected = tipo == t, onClick = { tipo = t })
+            Text(t.replace("_", " ").lowercase().replaceFirstChar { it.uppercase() })
+        }
+    }
 }
