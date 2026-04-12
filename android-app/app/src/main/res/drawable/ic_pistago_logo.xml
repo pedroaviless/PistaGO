@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+
+    <!-- Fondo círculo verde oscuro -->
+    <path
+        android:fillColor="#2E7D32"
+        android:pathData="M24,24m-24,0a24,24 0,1 1,48 0a24,24 0,1 1,-48 0"/>
+
+    <!-- Superficie pista roja -->
+    <path
+        android:fillColor="#C0392B"
+        android:pathData="M8,13 L40,13 L40,35 L8,35 Z"/>
+
+    <!-- Borde exterior blanco -->
+    <path android:fillColor="#FFFFFF" android:pathData="M8,13 L40,13 L40,14 L8,14 Z"/>
+    <path android:fillColor="#FFFFFF" android:pathData="M8,34 L40,34 L40,35 L8,35 Z"/>
+    <path android:fillColor="#FFFFFF" android:pathData="M8,13 L9,13 L9,35 L8,35 Z"/>
+    <path android:fillColor="#FFFFFF" android:pathData="M39,13 L40,13 L40,35 L39,35 Z"/>
+
+    <!-- Líneas dobles (calles) arriba y abajo -->
+    <path android:fillColor="#FFFFFF" android:pathData="M8,17 L40,17 L40,17.5 L8,17.5 Z"/>
+    <path android:fillColor="#FFFFFF" android:pathData="M8,30.5 L40,30.5 L40,31 L8,31 Z"/>
+
+    <!-- Líneas de saque izquierda y derecha -->
+    <path android:fillColor="#FFFFFF" android:pathData="M14,17.5 L14.5,17.5 L14.5,30.5 L14,30.5 Z"/>
+    <path android:fillColor="#FFFFFF" android:pathData="M33.5,17.5 L34,17.5 L34,30.5 L33.5,30.5 Z"/>
+
+    <!-- Línea centro fondo (paralela a red) -->
+    <path android:fillColor="#FFFFFF" android:pathData="M14,23.8 L34,23.8 L34,24.2 L14,24.2 Z"/>
+
+    <!-- Línea de saque horizontal -->
+    <path android:fillColor="#FFFFFF" android:pathData="M14,23.8 L34,23.8 L34,24.2 L14,24.2 Z"/>
+
+    <!-- Red vertical central - banda oscura -->
+    <path
+        android:fillColor="#1a1a1a"
+        android:pathData="M23,13 L25,13 L25,35 L23,35 Z"/>
+
+    <!-- Red - banda blanca central -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M23.8,13 L24.2,13 L24.2,35 L23.8,35 Z"/>
+
+    <!-- Postes red arriba y abajo -->
+    <path android:fillColor="#FFFFFF" android:pathData="M22,11.5 L26,11.5 L26,13 L22,13 Z"/>
+    <path android:fillColor="#FFFFFF" android:pathData="M22,35 L26,35 L26,36.5 L22,36.5 Z"/>
+
+    <!-- Pelota amarilla -->
+    <path
+        android:fillColor="#CDDC39"
+        android:pathData="M33,19m-3,0a3,3 0,1 1,6 0a3,3 0,1 1,-6 0"/>
+
+    <!-- Curva superior pelota -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="0.4"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000"
+        android:pathData="M30.5,17.8 Q33,16.5 35.5,17.8"/>
+
+    <!-- Curva inferior pelota -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="0.4"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000"
+        android:pathData="M30.5,20.2 Q33,21.5 35.5,20.2"/>
+
+</vector>

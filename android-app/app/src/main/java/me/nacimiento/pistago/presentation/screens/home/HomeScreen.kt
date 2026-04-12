@@ -16,6 +16,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import me.nacimiento.pistago.presentation.viewmodel.AuthViewModel
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.foundation.layout.size
+import me.nacimiento.pistago.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,7 +40,12 @@ fun HomeScreen(
             TopAppBar(
                 title = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("🎾", fontSize = 20.sp)
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_pistago_logo),
+                            contentDescription = "PistaGO",
+                            tint = Color.Unspecified,
+                            modifier = Modifier.size(32.dp)
+                        )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             text = "PistaGO",
