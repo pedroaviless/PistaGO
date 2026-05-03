@@ -6,6 +6,9 @@ import me.nacimiento.pistago_backend.domain.enums.RolUsuario
 import me.nacimiento.pistago_backend.domain.repository.UsuarioRepository
 import me.nacimiento.pistago_backend.dto.AuthResponse
 import me.nacimiento.pistago_backend.dto.LoginRequest
+import me.nacimiento.pistago_backend.dto.PasswordChangeRequest
+import me.nacimiento.pistago_backend.dto.PerfilRequest
+import me.nacimiento.pistago_backend.dto.PerfilResponse
 import me.nacimiento.pistago_backend.dto.RegisterRequest
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
@@ -72,4 +75,69 @@ class AuthService(
             ?: throw IllegalArgumentException("Usuario no encontrado")
         usuarioRepository.save(usuario.copy(fcmToken = fcmToken))
     }
+
+    fun getPerfil(email: String): PerfilResponse {
+        val usuario = usuarioRepository.findByEmail(email)
+            ?: throw IllegalArgumentException("Usuario no encontrado")
+        return usuario.toPerfilResponse()
+    }
+
+    fun actualizarPerfil(email: String, request: PerfilRequest): PerfilResponse {
+        val usuario = usuarioRepository.findByEmail(email)
+            ?: throw IllegalArgumentException("Usuario no encontrado")
+
+        val actualizado = usuario.copy(
+            nombre = request.nombre,
+            telefono = request.telefono,
+            updatedAt = LocalDateTime.now()
+        )
+
+        val saved = usuarioRepository.save(actualizado)
+        return saved.toPerfilResponse()
+    }
+
+    fun cambiarPassword(email: String, request: PasswordChangeRequest) {
+        val usuario = usuarioRepository.findByEmail(email)
+            ?: throw IllegalArgumentException("Usuario no encontrado")
+
+        if (!passwordEncoder.matches(request.passwordActual, usuario.passwordHash)) {
+            throw IllegalArgumentException("Contraseña actual incorrecta")
+        }
+
+        require(request.passwordNueva.length >= 8) {
+            "La nueva contraseña debe tener al menos 8 caracteres"
+        }
+
+        usuarioRepository.save(
+            usuario.copy(
+                passwordHash = passwordEncoder.encode(request.passwordNueva),
+                updatedAt = LocalDateTime.now()
+            )
+        )
+    }
+
+    fun actualizarFotoPerfil(email: String, nuevaUrl: String): PerfilResponse {
+        val usuario = usuarioRepository.findByEmail(email)
+            ?: throw IllegalArgumentException("Usuario no encontrado")
+
+        val saved = usuarioRepository.save(
+            usuario.copy(
+                fotoUrl = nuevaUrl,
+                updatedAt = LocalDateTime.now()
+            )
+        )
+        return saved.toPerfilResponse()
+    }
+
+    fun obtenerIdPorEmail(email: String): Long =
+        usuarioRepository.findByEmail(email)?.id
+            ?: throw IllegalArgumentException("Usuario no encontrado")
+
+    private fun Usuario.toPerfilResponse() = PerfilResponse(
+        nombre = nombre,
+        email = email,
+        telefono = telefono,
+        fotoUrl = fotoUrl,
+        rol = rol.name
+    )
 }

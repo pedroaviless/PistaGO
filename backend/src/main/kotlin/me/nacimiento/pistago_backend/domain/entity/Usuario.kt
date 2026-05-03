@@ -32,6 +32,12 @@ data class Usuario(
     @Column(name = "fcm_token")
     val fcmToken: String? = null,
 
+    @Column(name = "telefono")
+    val telefono: String? = null,
+
+    @Column(name = "foto_url")
+    val fotoUrl: String? = null,
+
     @Column(name = "reservas_semana", nullable = false)
     val reservasSemana: Int = 0,
 
