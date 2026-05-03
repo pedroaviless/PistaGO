@@ -1,5 +1,6 @@
 package me.nacimiento.pistago_backend.controller
 
+import jakarta.validation.Valid
 import me.nacimiento.pistago_backend.dto.ListaEsperaRequest
 import me.nacimiento.pistago_backend.dto.ListaEsperaResponse
 import me.nacimiento.pistago_backend.service.ListaEsperaService
@@ -16,7 +17,7 @@ class ListaEsperaController(
     @PostMapping
     fun apuntarse(
         @AuthenticationPrincipal email: String,
-        @RequestBody request: ListaEsperaRequest
+        @Valid @RequestBody request: ListaEsperaRequest
     ): ResponseEntity<ListaEsperaResponse> =
         ResponseEntity.ok(listaEsperaService.apuntarse(email, request))
 

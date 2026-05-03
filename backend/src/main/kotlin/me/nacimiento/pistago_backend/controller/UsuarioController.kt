@@ -1,5 +1,6 @@
 package me.nacimiento.pistago_backend.controller
 
+import jakarta.validation.Valid
 import me.nacimiento.pistago_backend.config.JwtService
 import me.nacimiento.pistago_backend.dto.PasswordChangeRequest
 import me.nacimiento.pistago_backend.dto.PerfilRequest
@@ -29,7 +30,7 @@ class UsuarioController(
     @PutMapping("/perfil")
     fun actualizarPerfil(
         @RequestHeader("Authorization") authHeader: String,
-        @RequestBody request: PerfilRequest
+        @Valid @RequestBody request: PerfilRequest
     ): ResponseEntity<PerfilResponse> {
         val email = jwtService.extractEmail(authHeader.removePrefix("Bearer "))
         return ResponseEntity.ok(authService.actualizarPerfil(email, request))
@@ -38,7 +39,7 @@ class UsuarioController(
     @PutMapping("/perfil/password")
     fun cambiarPassword(
         @RequestHeader("Authorization") authHeader: String,
-        @RequestBody request: PasswordChangeRequest
+        @Valid @RequestBody request: PasswordChangeRequest
     ): ResponseEntity<Void> {
         val email = jwtService.extractEmail(authHeader.removePrefix("Bearer "))
         authService.cambiarPassword(email, request)

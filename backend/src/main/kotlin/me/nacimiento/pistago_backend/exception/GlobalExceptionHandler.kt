@@ -4,11 +4,32 @@ import jakarta.servlet.http.HttpServletRequest
 import me.nacimiento.pistago_backend.dto.ErrorResponse
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.AccessDeniedException
+import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 
 @RestControllerAdvice
 class GlobalExceptionHandler {
+
+    @ExceptionHandler(MethodArgumentNotValidException::class)
+    fun handleValidation(
+        ex: MethodArgumentNotValidException,
+        request: HttpServletRequest
+    ): ResponseEntity<ErrorResponse> {
+        val errores = ex.bindingResult.fieldErrors
+            .associate { it.field to (it.defaultMessage ?: "Valor no válido") }
+
+        return ResponseEntity.badRequest().body(
+            ErrorResponse(
+                status = 400,
+                error = "Validation Failed",
+                message = "Hay errores de validación en la solicitud",
+                path = request.requestURI,
+                errors = errores
+            )
+        )
+    }
 
     @ExceptionHandler(IllegalArgumentException::class)
     fun handleIllegalArgument(

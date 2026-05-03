@@ -1,5 +1,6 @@
 package me.nacimiento.pistago_backend.controller
 
+import jakarta.validation.Valid
 import me.nacimiento.pistago_backend.dto.ReservaRequest
 import me.nacimiento.pistago_backend.dto.ReservaResponse
 import me.nacimiento.pistago_backend.service.ReservaService
@@ -16,7 +17,7 @@ class ReservaController(
     @PostMapping
     fun crear(
         @AuthenticationPrincipal email: String,
-        @RequestBody request: ReservaRequest
+        @Valid @RequestBody request: ReservaRequest
     ): ResponseEntity<ReservaResponse> =
         ResponseEntity.ok(reservaService.crear(email, request))
 
