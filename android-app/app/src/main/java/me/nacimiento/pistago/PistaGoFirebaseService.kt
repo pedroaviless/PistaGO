@@ -32,7 +32,7 @@ class PistaGoFirebaseService : FirebaseMessagingService() {
             val authToken = tokenDataStore.token.firstOrNull()
             if (authToken != null) {
                 try {
-                    api.updateFcmToken("Bearer $authToken", mapOf("fcmToken" to token))
+                    api.updateFcmToken(mapOf("fcmToken" to token))
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }

@@ -71,4 +71,5 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.messaging)
+    implementation("io.coil-kt:coil-compose:2.7.0")
 }

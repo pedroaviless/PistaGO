@@ -34,23 +34,42 @@ object AppModule {
         tokenDataStore: TokenDataStore
     ): OkHttpClient {
         return OkHttpClient.Builder()
-            .addInterceptor(loggingInterceptor)
             .connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
             .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
             .writeTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+            // 1. Auth interceptor PRIMERO (añade el token)
             .addInterceptor { chain ->
-                val requestBuilder = chain.request().newBuilder()
-                
-                // Obtenemos el token de forma bloqueante pero solo el primer valor disponible
+                val originalRequest = chain.request()
+                val requestBuilder = originalRequest.newBuilder()
+
                 val token = runBlocking {
                     tokenDataStore.token.firstOrNull()
                 }
-                
+
                 token?.let {
                     requestBuilder.addHeader("Authorization", "Bearer $it")
                 }
-                chain.proceed(requestBuilder.build())
+
+                val response = chain.proceed(requestBuilder.build())
+
+                // Si el servidor rechaza por token caducado/inválido, limpiar sesión
+                // Excluimos endpoints de auth porque ahí el 401/403 es por credenciales malas,
+                // no por token caducado
+                val esEndpointAuth = originalRequest.url.encodedPath.startsWith("/api/auth/")
+                if ((response.code == 401 || response.code == 403) && !esEndpointAuth && token != null) {
+                    android.util.Log.w(
+                        "AUTH_INTERCEPTOR",
+                        "Token rechazado (${response.code}) en ${originalRequest.url}. Limpiando sesión."
+                    )
+                    runBlocking {
+                        tokenDataStore.clearSession()
+                    }
+                }
+
+                response
             }
+            // 2. Logging interceptor DESPUÉS
+            .addInterceptor(loggingInterceptor)
             .build()
     }
 

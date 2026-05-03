@@ -4,6 +4,8 @@ import me.nacimiento.pistago.data.remote.dto.AuthResponse
 import me.nacimiento.pistago.data.remote.dto.ListaEsperaRequest
 import me.nacimiento.pistago.data.remote.dto.ListaEsperaResponse
 import me.nacimiento.pistago.data.remote.dto.LoginRequest
+import me.nacimiento.pistago.data.remote.dto.PerfilRequest
+import me.nacimiento.pistago.data.remote.dto.PerfilResponse
 import me.nacimiento.pistago.data.remote.dto.PistaAdminRequest
 import me.nacimiento.pistago.data.remote.dto.PistaResponse
 import me.nacimiento.pistago.data.remote.dto.RegisterRequest
@@ -17,6 +19,10 @@ import retrofit2.http.Header
 import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.PUT
+import me.nacimiento.pistago.data.remote.dto.PasswordChangeRequest
+import okhttp3.MultipartBody
+import retrofit2.http.Multipart
+import retrofit2.http.Part
 
 interface PistaGoApi {
 
@@ -55,7 +61,6 @@ interface PistaGoApi {
 
     @POST("api/auth/fcm-token")
     suspend fun updateFcmToken(
-        @Header("Authorization") authHeader: String,
         @Body body: Map<String, String>
     ): Response<Void>
 
@@ -86,5 +91,26 @@ interface PistaGoApi {
         @retrofit2.http.Query("fecha") fecha: String,
         @retrofit2.http.Query("pistaId") pistaId: Long
     ): Response<List<String>>
+
+    // Perfil
+    @GET("api/usuarios/perfil")
+    suspend fun getPerfil(): Response<PerfilResponse>
+
+    @PUT("api/usuarios/perfil")
+    suspend fun actualizarPerfil(
+        @Body request: PerfilRequest
+    ): Response<PerfilResponse>
+
+    @PUT("api/usuarios/perfil/password")
+    suspend fun cambiarPassword(
+        @Body request: PasswordChangeRequest
+    ): Response<Void>
+
+    @Multipart
+    @POST("api/usuarios/perfil/foto")
+    suspend fun subirFotoPerfil(
+        @Part file: MultipartBody.Part
+    ): Response<PerfilResponse>
+
 }
 

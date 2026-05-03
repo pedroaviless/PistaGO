@@ -5,29 +5,36 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.*
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.google.firebase.messaging.FirebaseMessaging
 import dagger.hilt.android.AndroidEntryPoint
+import me.nacimiento.pistago.data.local.TokenDataStore
 import me.nacimiento.pistago.presentation.navigation.Routes
+import me.nacimiento.pistago.presentation.screens.admin.AdminMenuScreen
+import me.nacimiento.pistago.presentation.screens.admin.AdminPistasScreen
+import me.nacimiento.pistago.presentation.screens.admin.AdminReservasScreen
 import me.nacimiento.pistago.presentation.screens.auth.LoginScreen
 import me.nacimiento.pistago.presentation.screens.auth.RegisterScreen
+import me.nacimiento.pistago.presentation.screens.espera.ListaEsperaScreen
 import me.nacimiento.pistago.presentation.screens.home.HomeScreen
 import me.nacimiento.pistago.presentation.screens.perfil.PerfilScreen
 import me.nacimiento.pistago.presentation.screens.pistas.PistasScreen
 import me.nacimiento.pistago.presentation.screens.reservas.MisReservasScreen
 import me.nacimiento.pistago.presentation.screens.reservas.ReservarScreen
 import me.nacimiento.pistago.ui.theme.PistaGOTheme
-import com.google.firebase.messaging.FirebaseMessaging
-import me.nacimiento.pistago.presentation.screens.admin.AdminMenuScreen
-import me.nacimiento.pistago.presentation.screens.admin.AdminPistasScreen
-import me.nacimiento.pistago.presentation.screens.admin.AdminReservasScreen
-import me.nacimiento.pistago.presentation.screens.espera.ListaEsperaScreen
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
 
+    @Inject
+    lateinit var tokenDataStore: TokenDataStore
+
+    override fun onCreate(savedInstanceState: Bundle?) {
         FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
             if (task.isSuccessful) {
                 val token = task.result
@@ -40,14 +47,29 @@ class MainActivity : ComponentActivity() {
             PistaGOTheme {
                 val navController = rememberNavController()
 
+                // Observamos el token de la sesión
+                val token by tokenDataStore.token.collectAsStateWithLifecycle(initialValue = "loading")
+                val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
+
+                // Si el token desaparece (interceptor limpió sesión por 401/403), forzamos navegación a Login
+                LaunchedEffect(token, currentRoute) {
+                    // Saltamos el estado inicial "loading"
+                    if (token == "loading") return@LaunchedEffect
+
+                    val sesionPerdida = token == null
+                    val estaEnPantallaAuth = currentRoute == Routes.LOGIN || currentRoute == Routes.REGISTER
+
+                    if (sesionPerdida && !estaEnPantallaAuth && currentRoute != null) {
+                        navController.navigate(Routes.LOGIN) {
+                            popUpTo(0) { inclusive = true }
+                        }
+                    }
+                }
+
                 NavHost(
                     navController = navController,
                     startDestination = Routes.LOGIN
                 ) {
-                    composable(Routes.ADMIN_RESERVAS) {
-                        AdminReservasScreen(onBack = { navController.popBackStack() })
-                    }
-
                     composable(Routes.LOGIN) {
                         LoginScreen(
                             onLoginSuccess = {
@@ -83,6 +105,7 @@ class MainActivity : ComponentActivity() {
                             onNavigateToAdmin = { navController.navigate(Routes.ADMIN_MENU) }
                         )
                     }
+
                     composable(Routes.ADMIN_MENU) {
                         AdminMenuScreen(
                             onNavigateToPistas = { navController.navigate(Routes.ADMIN_PISTAS) },
@@ -94,6 +117,7 @@ class MainActivity : ComponentActivity() {
                     composable(Routes.ADMIN_RESERVAS) {
                         AdminReservasScreen(onBack = { navController.popBackStack() })
                     }
+
                     composable(Routes.PISTAS) {
                         PistasScreen(
                             onPistaClick = { pistaId ->
@@ -134,6 +158,7 @@ class MainActivity : ComponentActivity() {
                             onBack = { navController.popBackStack() }
                         )
                     }
+
                     composable(Routes.ADMIN_PISTAS) {
                         AdminPistasScreen(onBack = { navController.popBackStack() })
                     }

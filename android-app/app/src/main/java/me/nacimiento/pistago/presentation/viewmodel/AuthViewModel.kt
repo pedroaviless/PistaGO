@@ -1,5 +1,6 @@
 package me.nacimiento.pistago.presentation.viewmodel
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -14,7 +15,12 @@ import javax.inject.Inject
 data class AuthUiState(
     val isLoading: Boolean = false,
     val usuario: Usuario? = null,
-    val error: String? = null
+    val error: String? = null,
+    val telefono: String? = null,
+    val fotoUrl: String? = null,
+    val perfilActualizado: Boolean = false,
+    val passwordActualizada: Boolean = false,
+    val fotoSubida: Boolean = false
 )
 
 @HiltViewModel
@@ -34,8 +40,8 @@ class AuthViewModel @Inject constructor(
         viewModelScope.launch {
             val result = authRepository.getUsuarioActual()
             result.fold(
-                onSuccess = { if (it != null) _uiState.value = AuthUiState(usuario = it) },
-                onFailure = { /* no hay sesión activa */ }
+                onSuccess = { if (it != null) _uiState.value = _uiState.value.copy(usuario = it) },
+                onFailure = { /* sin sesión */ }
             )
         }
     }
@@ -43,8 +49,7 @@ class AuthViewModel @Inject constructor(
     fun login(email: String, password: String) {
         viewModelScope.launch {
             _uiState.value = AuthUiState(isLoading = true)
-            val result = authRepository.login(email, password)
-            result.fold(
+            authRepository.login(email, password).fold(
                 onSuccess = { _uiState.value = AuthUiState(usuario = it) },
                 onFailure = { _uiState.value = AuthUiState(error = it.message) }
             )
@@ -54,8 +59,7 @@ class AuthViewModel @Inject constructor(
     fun register(nombre: String, email: String, password: String) {
         viewModelScope.launch {
             _uiState.value = AuthUiState(isLoading = true)
-            val result = authRepository.register(nombre, email, password)
-            result.fold(
+            authRepository.register(nombre, email, password).fold(
                 onSuccess = { _uiState.value = AuthUiState(usuario = it) },
                 onFailure = { _uiState.value = AuthUiState(error = it.message) }
             )
@@ -67,5 +71,89 @@ class AuthViewModel @Inject constructor(
             authRepository.logout()
             _uiState.value = AuthUiState()
         }
+    }
+
+    fun getPerfil() {
+        viewModelScope.launch {
+            authRepository.getPerfil().fold(
+                onSuccess = {
+                    _uiState.value = _uiState.value.copy(
+                        telefono = it.telefono,
+                        fotoUrl = it.fotoUrl
+                    )
+                },
+                onFailure = { _uiState.value = _uiState.value.copy(error = it.message) }
+            )
+        }
+    }
+
+    fun actualizarPerfil(nombre: String, telefono: String?) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoading = true)
+            authRepository.actualizarPerfil(nombre, telefono).fold(
+                onSuccess = { perfil ->
+                    // Actualizar también el nombre del Usuario en sesión
+                    val usuarioActual = _uiState.value.usuario
+                    val usuarioNuevo = usuarioActual?.copy(nombre = perfil.nombre)
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        usuario = usuarioNuevo,
+                        telefono = perfil.telefono,
+                        fotoUrl = perfil.fotoUrl,
+                        perfilActualizado = true,
+                        error = null
+                    )
+                },
+                onFailure = {
+                    _uiState.value = _uiState.value.copy(isLoading = false, error = it.message)
+                }
+            )
+        }
+    }
+
+    fun cambiarPassword(passwordActual: String, passwordNueva: String) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoading = true)
+            authRepository.cambiarPassword(passwordActual, passwordNueva).fold(
+                onSuccess = {
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        passwordActualizada = true,
+                        error = null
+                    )
+                },
+                onFailure = {
+                    _uiState.value = _uiState.value.copy(isLoading = false, error = it.message)
+                }
+            )
+        }
+    }
+
+    fun subirFotoPerfil(uri: Uri) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoading = true)
+            authRepository.subirFotoPerfil(uri).fold(
+                onSuccess = {
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        fotoUrl = it.fotoUrl,
+                        fotoSubida = true,
+                        error = null
+                    )
+                },
+                onFailure = {
+                    _uiState.value = _uiState.value.copy(isLoading = false, error = it.message)
+                }
+            )
+        }
+    }
+
+    fun clearMensajes() {
+        _uiState.value = _uiState.value.copy(
+            perfilActualizado = false,
+            passwordActualizada = false,
+            fotoSubida = false,
+            error = null
+        )
     }
 }
