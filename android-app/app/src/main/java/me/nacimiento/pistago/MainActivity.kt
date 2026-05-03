@@ -145,7 +145,7 @@ class MainActivity : ComponentActivity() {
                     }
 
                     composable(Routes.LISTA_ESPERA) {
-                        ListaEsperaScreen()
+                        ListaEsperaScreen(onBack = { navController.popBackStack() })
                     }
 
                     composable(Routes.PERFIL) {

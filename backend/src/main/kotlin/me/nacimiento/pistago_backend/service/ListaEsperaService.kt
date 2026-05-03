@@ -26,32 +26,36 @@ class ListaEsperaService(
             .orElseThrow { IllegalArgumentException("Pista no encontrada") }
 
         val yaEnLista = listaEsperaRepository.findByUsuarioIdAndPistaIdAndFechaHora(
-            usuario.id!!, request.pistaId, request.fechaHora
+            usuario.id, request.pistaId, request.fechaHora
         )
         if (yaEnLista != null) throw IllegalArgumentException("Ya estás en la lista de espera para este horario")
 
+        // Posición orientativa al guardar (basada en cuántos hay en ese momento).
+        // No es la fuente de verdad: la posición real se calcula al consultar.
         val listaActual = listaEsperaRepository
-            .findByPistaIdAndFechaHoraOrderByPosicionAsc(request.pistaId, request.fechaHora)
-        val posicion = listaActual.size + 1
+            .findByPistaIdAndFechaHoraOrderByCreatedAtAsc(request.pistaId, request.fechaHora)
+        val posicionInicial = listaActual.size + 1
 
         val entrada = ListaEspera(
             usuario = usuario,
             pista = pista,
             fechaHora = request.fechaHora,
-            posicion = posicion,
+            posicion = posicionInicial,
             notificado = false,
             createdAt = LocalDateTime.now()
         )
 
-        return listaEsperaRepository.save(entrada).toResponse()
+        val guardada = listaEsperaRepository.save(entrada)
+        return guardada.toResponseConPosicionCalculada()
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     fun getMiLista(email: String): List<ListaEsperaResponse> {
         val usuario = usuarioRepository.findByEmail(email)
             ?: throw IllegalArgumentException("Usuario no encontrado")
-        return listaEsperaRepository.findByUsuarioId(usuario.id!!)
-            .map { it.toResponse() }
+
+        return listaEsperaRepository.findByUsuarioId(usuario.id)
+            .map { it.toResponseConPosicionCalculada() }
     }
 
     @Transactional
@@ -61,17 +65,29 @@ class ListaEsperaService(
         val entrada = listaEsperaRepository.findById(listaEsperaId)
             .orElseThrow { NoSuchElementException("Entrada no encontrada") }
         if (entrada.usuario.id != usuario.id) throw IllegalArgumentException("No autorizado")
+
         listaEsperaRepository.delete(entrada)
+        // No hace falta reordenar: la posición se calcula al consultar
     }
 
-    private fun ListaEspera.toResponse() = ListaEsperaResponse(
-        id = id!!,
-        pistaId = pista.id!!,
-        nombrePista = pista.nombre,
-        usuarioId = usuario.id!!,
-        nombreUsuario = usuario.nombre,
-        fechaHora = fechaHora,
-        posicion = posicion,
-        notificado = notificado
-    )
+    /**
+     * Calcula la posición real consultando la cola completa de esa pista+fechaHora
+     * y buscando el índice de esta entrada (ordenado por createdAt).
+     */
+    private fun ListaEspera.toResponseConPosicionCalculada(): ListaEsperaResponse {
+        val cola = listaEsperaRepository
+            .findByPistaIdAndFechaHoraOrderByCreatedAtAsc(pista.id, fechaHora)
+        val posicionReal = cola.indexOfFirst { it.id == this.id } + 1
+
+        return ListaEsperaResponse(
+            id = id,
+            pistaId = pista.id,
+            nombrePista = pista.nombre,
+            usuarioId = usuario.id,
+            nombreUsuario = usuario.nombre,
+            fechaHora = fechaHora,
+            posicion = posicionReal,
+            notificado = notificado
+        )
+    }
 }
