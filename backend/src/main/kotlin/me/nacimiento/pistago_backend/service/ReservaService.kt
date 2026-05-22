@@ -1,22 +1,32 @@
 package me.nacimiento.pistago_backend.service
 
+import me.nacimiento.pistago_backend.domain.entity.Notificacion
 import me.nacimiento.pistago_backend.domain.entity.Reserva
 import me.nacimiento.pistago_backend.domain.enums.EstadoReserva
+import me.nacimiento.pistago_backend.domain.enums.TipoNotificacion
+import me.nacimiento.pistago_backend.domain.repository.ListaEsperaRepository
+import me.nacimiento.pistago_backend.domain.repository.NotificacionRepository
 import me.nacimiento.pistago_backend.domain.repository.PistaRepository
 import me.nacimiento.pistago_backend.domain.repository.ReservaRepository
 import me.nacimiento.pistago_backend.domain.repository.UsuarioRepository
 import me.nacimiento.pistago_backend.dto.ReservaRequest
 import me.nacimiento.pistago_backend.dto.ReservaResponse
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 @Service
 class ReservaService(
     private val reservaRepository: ReservaRepository,
     private val pistaRepository: PistaRepository,
-    private val usuarioRepository: UsuarioRepository
+    private val usuarioRepository: UsuarioRepository,
+    private val listaEsperaRepository: ListaEsperaRepository,
+    private val notificacionRepository: NotificacionRepository,
+    private val fcmService: FcmService
 ) {
+    private val log = LoggerFactory.getLogger(ReservaService::class.java)
 
     @Transactional
     fun crear(email: String, request: ReservaRequest): ReservaResponse {
@@ -67,7 +77,75 @@ class ReservaService(
             estado = EstadoReserva.CANCELADA,
             updatedAt = LocalDateTime.now()
         )
-        return reservaRepository.save(cancelada).toResponse()
+        val guardada = reservaRepository.save(cancelada)
+
+        // Avisar al primero de la lista de espera de esa pista+franja (si hay)
+        notificarPrimeroEnEspera(reserva)
+
+        return guardada.toResponse()
+    }
+
+    /**
+     * Cuando se cancela una reserva, busca al primero de la cola de espera
+     * para esa pista y franja horaria que aún no haya sido notificado,
+     * le envía una push y registra la notificación.
+     */
+    private fun notificarPrimeroEnEspera(reservaCancelada: Reserva) {
+        val cola = listaEsperaRepository.findByPistaIdAndFechaHoraOrderByCreatedAtAsc(
+            reservaCancelada.pista.id!!,
+            reservaCancelada.fechaHora
+        )
+
+        // Primero de la cola que todavía NO ha sido notificado
+        val primero = cola.firstOrNull { !it.notificado } ?: run {
+            log.info("No hay nadie pendiente de notificar en lista de espera para pista=${reservaCancelada.pista.id} fecha=${reservaCancelada.fechaHora}")
+            return
+        }
+
+        val destinatario = primero.usuario
+        val nombrePista = reservaCancelada.pista.nombre
+        val fechaFormateada = reservaCancelada.fechaHora.format(
+            DateTimeFormatter.ofPattern("dd/MM/yyyy 'a las' HH:mm")
+        )
+
+        val titulo = "¡Tu turno en $nombrePista!"
+        val mensaje = "Se ha liberado una plaza en $nombrePista el $fechaFormateada. ¡Reserva ya antes de que otro la coja!"
+
+        // Enviar push
+        val enviada = fcmService.enviarNotificacion(
+            fcmToken = destinatario.fcmToken,
+            titulo = titulo,
+            cuerpo = mensaje,
+            datos = mapOf(
+                "tipo" to TipoNotificacion.TURNO_ESPERA.name,
+                "pistaId" to reservaCancelada.pista.id.toString(),
+                "fechaHora" to reservaCancelada.fechaHora.toString()
+            )
+        )
+
+        // Marcar a este usuario como notificado para no volver a avisarle
+        listaEsperaRepository.save(
+            primero.copy(
+                notificado = true,
+                expiraEn = LocalDateTime.now().plusMinutes(10)
+            )
+        )
+
+        // Registrar la notificación en BD
+        notificacionRepository.save(
+            Notificacion(
+                usuario = destinatario,
+                tipo = TipoNotificacion.TURNO_ESPERA,
+                titulo = titulo,
+                mensaje = mensaje,
+                leida = false,
+                reserva = reservaCancelada,
+                enviadaPush = enviada,
+                createdAt = LocalDateTime.now()
+            )
+        )
+
+        log.info("Notificación de turno de espera ${if (enviada) "enviada" else "registrada (push falló)"} a usuario=${destinatario.id}")
     }
 
     @Transactional
@@ -93,8 +171,8 @@ class ReservaService(
                 }
             }
             .keys.toList()
-
     }
+
     @Transactional
     fun getHorasOcupadasPorPistaYFecha(fecha: String, pistaId: Long): List<String> {
         val inicio = java.time.LocalDate.parse(fecha).atStartOfDay()

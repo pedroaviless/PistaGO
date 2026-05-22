@@ -14,4 +14,6 @@ interface AuthRepository {
     suspend fun actualizarPerfil(nombre: String, telefono: String?): Result<PerfilResponse>
     suspend fun cambiarPassword(passwordActual: String, passwordNueva: String): Result<Unit>
     suspend fun subirFotoPerfil(uri: Uri): Result<PerfilResponse>
+
+    suspend fun registrarFcmToken(): Result<Unit>
 }

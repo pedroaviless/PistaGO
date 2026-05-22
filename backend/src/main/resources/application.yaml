@@ -33,3 +33,6 @@ pistago:
     base-path: /var/www/pistago/uploads
     avatars-dir: avatars
     public-url: https://nacimiento.me/uploads
+  firebase:
+    service-account-path: /home/pedro/pistago/firebase-service-account.json
+    enabled: false

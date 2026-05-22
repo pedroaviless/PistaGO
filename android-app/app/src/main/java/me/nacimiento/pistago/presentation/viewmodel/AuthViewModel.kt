@@ -50,7 +50,11 @@ class AuthViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = AuthUiState(isLoading = true)
             authRepository.login(email, password).fold(
-                onSuccess = { _uiState.value = AuthUiState(usuario = it) },
+                onSuccess = {
+                    _uiState.value = AuthUiState(usuario = it)
+                    // Registrar el token FCM tras login exitoso
+                    authRepository.registrarFcmToken()
+                },
                 onFailure = { _uiState.value = AuthUiState(error = it.message) }
             )
         }
@@ -60,7 +64,10 @@ class AuthViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = AuthUiState(isLoading = true)
             authRepository.register(nombre, email, password).fold(
-                onSuccess = { _uiState.value = AuthUiState(usuario = it) },
+                onSuccess = {
+                    _uiState.value = AuthUiState(usuario = it)
+                    authRepository.registrarFcmToken()
+                            },
                 onFailure = { _uiState.value = AuthUiState(error = it.message) }
             )
         }

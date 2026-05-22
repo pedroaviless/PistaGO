@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.tasks.await
 import me.nacimiento.pistago.data.local.TokenDataStore
 import me.nacimiento.pistago.data.remote.api.PistaGoApi
 import me.nacimiento.pistago.data.remote.dto.LoginRequest
@@ -137,4 +138,16 @@ class AuthRepositoryImpl @Inject constructor(
             Result.failure(e)
         }
     }
+    override suspend fun registrarFcmToken(): Result<Unit> {
+        return try {
+            val fcmToken = com.google.firebase.messaging.FirebaseMessaging.getInstance()
+                .token.await()
+            val response = api.updateFcmToken(mapOf("fcmToken" to fcmToken))
+            if (response.isSuccessful) Result.success(Unit)
+            else Result.failure(Exception("Error registrando FCM token: ${response.code()}"))
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
 }
