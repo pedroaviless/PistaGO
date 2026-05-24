@@ -38,3 +38,14 @@ out/
 
 ### Kotlin ###
 .kotlin
+
+### Secretos PistaGO — NUNCA subir ###
+application.yaml
+application.yml
+application-prod.yml
+application-prod.yaml
+firebase-service-account.json
+google-services.json
+*.env
+# Excepción: la plantilla de ejemplo SÍ se sube
+!application.yaml.example

@@ -1,45 +1,59 @@
-# Gradle files
+# ==========================================================
+#  PistaGO — .gitignore
+# ==========================================================
+ 
+# ----- Gradle -----
 .gradle/
 build/
-
-# Local configuration file (sdk path, etc)
+backend/.gradle/
+backend/build/
+backend/target/
+ 
+# ----- Configuración local -----
 local.properties
-
-# Log/OS Files
+ 
+# ----- Logs / OS -----
 *.log
-
-# Android Studio generated files and folders
+ 
+# ----- Android Studio -----
 captures/
 .externalNativeBuild/
 .cxx/
 *.aab
 *.apk
 output-metadata.json
-
-# IntelliJ
+ 
+# ----- IntelliJ IDEA -----
 *.iml
 .idea/
 misc.xml
 deploymentTargetDropDown.xml
 render.experimental.xml
-
-# Keystore files
+ 
+# ----- Keystores -----
 *.jks
 *.keystore
-
-# Google Services (e.g. APIs or Firebase)
-google-services.json
-
-# Android Profiling
+ 
+# ----- Android Profiling -----
 *.hprof
-
-# Backend Spring Boot
-backend\.gradle\
-backend\build\
-backend\target\
+ 
+# ----- Compilados Java -----
 *.jar
-
-# Secrets — NUNCA subir
+# Excepción: el wrapper de Gradle SÍ debe versionarse
+!gradle/wrapper/gradle-wrapper.jar
+!backend/gradle/wrapper/gradle-wrapper.jar
+ 
+# ==========================================================
+#  SECRETOS — NUNCA subir
+# ==========================================================
 *.env
-application-prod.yml
 google-services.json
+firebase-service-account.json
+application-prod.yml
+application-prod.yaml
+ 
+# Configuración con credenciales reales
+application.yaml
+application.yml
+# Excepción: la plantilla de ejemplo SÍ se sube
+!application.yaml.example

@@ -1,0 +1,39 @@
+spring:
+  application:
+    name: pistago-backend
+  servlet:
+    multipart:
+      max-file-size: 2MB
+      max-request-size: 2MB
+  datasource:
+    url: jdbc:postgresql://localhost:5432/pistago
+    username: TU_USUARIO_BD
+    password: TU_PASSWORD_BD
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+server:
+  port: 9090
+
+pistago:
+  jwt:
+    # Generar una clave larga y aleatoria, por ejemplo con:  openssl rand -base64 64
+    secret: TU_SECRETO_JWT_LARGO_Y_ALEATORIO
+    expiration: 86400000   # 24 horas en milisegundos
+  uploads:
+    base-path: /var/www/pistago/uploads
+    avatars-dir: avatars
+    public-url: https://api.tu-dominio.com/uploads
+  firebase:
+    # Ruta al fichero de credenciales de la cuenta de servicio de Firebase.
+    # NUNCA se versiona; se coloca manualmente en el servidor.
+    service-account-path: /ruta/al/firebase-service-account.json
+    # true en producción (envía push), false en desarrollo local
+    enabled: false
