@@ -22,6 +22,14 @@ import androidx.compose.foundation.layout.size
 import me.nacimiento.pistago.R
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.foundation.Canvas
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.drawscope.Stroke
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -158,21 +166,92 @@ fun HomeScreen(
                 Text("Mis reservas", fontWeight = FontWeight.Bold, fontSize = 16.sp)
             }
             if (esAdmin) {
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(20.dp))
 
-                Button(
+                Card(
                     onClick = onNavigateToAdmin,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp),
-                    shape = MaterialTheme.shapes.extraLarge,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.secondary
-                    )
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
                 ) {
-                    Icon(Icons.Default.AdminPanelSettings, contentDescription = null)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Administración", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(
+                                brush = Brush.horizontalGradient(
+                                    colors = listOf(
+                                        Color(0xFF1B5E20),
+                                        Color(0xFF2E7D32)
+                                    )
+                                )
+                            )
+                    ) {
+                        // Arco lima decorativo de fondo (esquina derecha)
+                        Canvas(
+                            modifier = Modifier.matchParentSize()
+                        ) {
+                            val diametro = size.height * 1.8f
+                            drawArc(
+                                color = Color(0xFFC6FF00).copy(alpha = 0.55f),
+                                startAngle = 0f,
+                                sweepAngle = 280f,
+                                useCenter = false,
+                                topLeft = Offset(
+                                    x = size.width - diametro * 0.55f,
+                                    y = -diametro * 0.15f
+                                ),
+                                size = Size(diametro, diametro),
+                                style = Stroke(width = 5f)
+                            )
+                        }
+
+                        // Contenido
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(20.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .background(
+                                        color = Color.White.copy(alpha = 0.15f),
+                                        shape = RoundedCornerShape(12.dp)
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    Icons.Default.AdminPanelSettings,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(26.dp)
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.width(16.dp))
+
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "Panel de administración",
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 17.sp
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = "Gestiona pistas, reservas y socios",
+                                    color = Color.White.copy(alpha = 0.85f),
+                                    fontSize = 13.sp
+                                )
+                            }
+
+                            Icon(
+                                Icons.AutoMirrored.Filled.ArrowForward,
+                                contentDescription = null,
+                                tint = Color.White
+                            )
+                        }
+                    }
                 }
             }
         }
