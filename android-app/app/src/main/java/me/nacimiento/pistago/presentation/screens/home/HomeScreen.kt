@@ -20,6 +20,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.foundation.layout.size
 import me.nacimiento.pistago.R
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.aspectRatio
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,11 +42,10 @@ fun HomeScreen(
             TopAppBar(
                 title = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_pistago_logo),
+                        Image(
+                            painter = painterResource(id = R.drawable.pistago_symbol),
                             contentDescription = "PistaGO",
-                            tint = Color.Unspecified,
-                            modifier = Modifier.size(32.dp)
+                            modifier = Modifier.size(44.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
@@ -52,17 +53,6 @@ fun HomeScreen(
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onPrimary
                         )
-                    }
-                },
-                actions = {
-                    if (esAdmin) {
-                        IconButton(onClick = onNavigateToAdmin) {
-                            Icon(
-                                Icons.Default.AdminPanelSettings,
-                                contentDescription = "Admin",
-                                tint = MaterialTheme.colorScheme.onPrimary
-                            )
-                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -116,20 +106,12 @@ fun HomeScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_pistago_logo),
+            Image(
+                painter = painterResource(id = R.drawable.portada_pistago),
                 contentDescription = "PistaGO",
-                tint = Color.Unspecified,
-                modifier = Modifier.size(120.dp)
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = "PistaGO",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
+                modifier = Modifier
+                    .fillMaxWidth(0.7f)
+                    .aspectRatio(1f)
             )
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -174,6 +156,24 @@ fun HomeScreen(
                 Icon(Icons.Default.CalendarMonth, contentDescription = null)
                 Spacer(modifier = Modifier.width(8.dp))
                 Text("Mis reservas", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            }
+            if (esAdmin) {
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Button(
+                    onClick = onNavigateToAdmin,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
+                    shape = MaterialTheme.shapes.extraLarge,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.secondary
+                    )
+                ) {
+                    Icon(Icons.Default.AdminPanelSettings, contentDescription = null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Administración", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                }
             }
         }
     }

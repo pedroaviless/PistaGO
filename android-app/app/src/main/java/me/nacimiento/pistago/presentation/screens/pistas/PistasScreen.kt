@@ -96,10 +96,14 @@ fun PistasScreen(
 
 @Composable
 fun PistaCard(pista: Pista, onClick: () -> Unit) {
-    val imageRes = if (pista.tipo == "TIERRA_BATIDA") {
-        R.drawable.pista_tierra
-    } else {
-        R.drawable.pista_dura
+    val imageRes = when (pista.id) {
+        2L -> R.drawable.pista_2
+        4L -> R.drawable.pista_4
+        else -> if (pista.tipo == "TIERRA_BATIDA") {
+            R.drawable.pista_tierra
+        } else {
+            R.drawable.pista_dura
+        }
     }
 
     Card(
@@ -146,11 +150,10 @@ fun PistaCard(pista: Pista, onClick: () -> Unit) {
                         )
                     }
                 }
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_pistago_logo),
+                Image(
+                    painter = painterResource(id = R.drawable.pistago_symbol),
                     contentDescription = null,
-                    tint = Color.Unspecified,
-                    modifier = Modifier.size(40.dp)
+                    modifier = Modifier.size(44.dp)
                 )
             }
         }

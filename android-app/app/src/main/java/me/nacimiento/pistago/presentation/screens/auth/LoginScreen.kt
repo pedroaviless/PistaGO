@@ -14,6 +14,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import me.nacimiento.pistago.presentation.viewmodel.AuthViewModel
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
+import me.nacimiento.pistago.R
 
 @Composable
 fun LoginScreen(
@@ -37,10 +40,11 @@ fun LoginScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        // Logo pelota de tenis
-        Text(
-            text = "🎾",
-            fontSize = 72.sp
+        // Logo PistaGO
+        Image(
+            painter = painterResource(id = R.drawable.pistago_symbol),
+            contentDescription = "PistaGO",
+            modifier = Modifier.size(120.dp)
         )
 
         Spacer(modifier = Modifier.height(16.dp))
