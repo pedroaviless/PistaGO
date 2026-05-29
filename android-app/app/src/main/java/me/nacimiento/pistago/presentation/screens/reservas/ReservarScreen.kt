@@ -1,6 +1,7 @@
 package me.nacimiento.pistago.presentation.screens.reservas
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -9,6 +10,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.HourglassEmpty
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -23,9 +27,24 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import me.nacimiento.pistago.presentation.viewmodel.PistaViewModel
 import me.nacimiento.pistago.presentation.viewmodel.ReservaViewModel
 import java.time.LocalDate
+import java.time.LocalTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.util.Locale
+
+// Franjas horarias de 1:30 (9 tramos: 5 mañana, pausa 16:00-16:30, 4 tarde)
+private val FRANJAS = listOf(
+    "08:30" to "10:00",
+    "10:00" to "11:30",
+    "11:30" to "13:00",
+    "13:00" to "14:30",
+    "14:30" to "16:00",
+    "16:30" to "18:00",
+    "18:00" to "19:30",
+    "19:30" to "21:00",
+    "21:00" to "22:30"
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,15 +57,10 @@ fun ReservarScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    val today = LocalDate.now()
+    val today = LocalDate.now(ZoneId.of("Europe/Madrid"))
     val snackbarHostState = remember { SnackbarHostState() }
     var selectedDate by remember { mutableStateOf(today) }
     var selectedHora by remember { mutableStateOf<String?>(null) }
-
-    val franjas = listOf(
-        "08:00", "09:00", "10:00", "11:00", "12:00",
-        "13:00", "16:00", "17:00", "18:00", "19:00", "20:00"
-    )
 
     val nombrePista = pistaViewModel.pistaSeleccionada?.nombre ?: "Pista $pistaId"
 
@@ -180,67 +194,39 @@ fun ReservarScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = "Selecciona la hora",
+                text = "Selecciona la franja",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(bottom = 12.dp)
             )
 
-            val franjaChunks = franjas.chunked(4)
-            franjaChunks.forEach { fila ->
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    fila.forEach { hora ->
-                        val ocupada = uiState.horasOcupadas.contains(hora)
-                        val isSelected = hora == selectedHora
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(
-                                    when {
-                                        ocupada -> MaterialTheme.colorScheme.error
-                                        isSelected -> MaterialTheme.colorScheme.primary
-                                        else -> MaterialTheme.colorScheme.primaryContainer
-                                    }
-                                )
-                                .clickable {
-                                    if (!ocupada) {
-                                        selectedHora = hora
-                                    } else {
-                                        val fechaHora = "${selectedDate}T${hora}:00"
-                                        viewModel.apuntarseListaEspera(pistaId, fechaHora)
-                                    }
-                                }
-                                .padding(vertical = 12.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text(
-                                    text = hora,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    fontWeight = FontWeight.Bold,
-                                    color = if (ocupada || isSelected) Color.White else MaterialTheme.colorScheme.primary,
-                                    textAlign = TextAlign.Center
-                                )
-                                if (ocupada) {
-                                    Text(
-                                        text = "+ espera",
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = Color.White.copy(alpha = 0.9f),
-                                        textAlign = TextAlign.Center
-                                    )
-                                }
+            // Calcular qué franjas están "ya pasadas" (solo aplica al día de hoy)
+            val ahora = LocalTime.now(ZoneId.of("Europe/Madrid"))
+            val esHoy = selectedDate == today
+
+            FRANJAS.forEach { (horaInicio, horaFin) ->
+                val ocupada = uiState.horasOcupadas.contains(horaInicio)
+                val pasada = esHoy && LocalTime.parse(horaInicio).isBefore(ahora)
+                val isSelected = horaInicio == selectedHora
+
+                FranjaItem(
+                    horaInicio = horaInicio,
+                    horaFin = horaFin,
+                    ocupada = ocupada,
+                    pasada = pasada,
+                    seleccionada = isSelected,
+                    onClick = {
+                        when {
+                            pasada -> { /* no hacer nada */ }
+                            ocupada -> {
+                                val fechaHora = "${selectedDate}T${horaInicio}:00"
+                                viewModel.apuntarseListaEspera(pistaId, fechaHora)
                             }
+                            else -> selectedHora = horaInicio
                         }
                     }
-                    repeat(4 - fila.size) {
-                        Spacer(modifier = Modifier.weight(1f))
-                    }
-                }
-                Spacer(modifier = Modifier.height(8.dp))
+                )
+                Spacer(modifier = Modifier.height(10.dp))
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -254,12 +240,12 @@ fun ReservarScreen(
                 Spacer(modifier = Modifier.height(8.dp))
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             Button(
                 onClick = {
                     val fechaHora = "${selectedDate}T${selectedHora}:00"
-                    viewModel.crearReserva(pistaId, fechaHora)
+                    viewModel.crearReserva(pistaId, fechaHora, duracionMin = 90)
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -275,12 +261,98 @@ fun ReservarScreen(
                     )
                 } else {
                     Text(
-                        text = if (selectedHora != null) "CONFIRMAR — $selectedHora" else "SELECCIONA UNA HORA",
+                        text = if (selectedHora != null) "CONFIRMAR — $selectedHora" else "SELECCIONA UNA FRANJA",
                         fontWeight = FontWeight.Bold,
                         letterSpacing = 1.sp
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun FranjaItem(
+    horaInicio: String,
+    horaFin: String,
+    ocupada: Boolean,
+    pasada: Boolean,
+    seleccionada: Boolean,
+    onClick: () -> Unit
+) {
+    // Colores según estado
+    val (bgColor, contentColor, borderColor) = when {
+        pasada -> Triple(
+            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+            Color.Transparent
+        )
+        ocupada -> Triple(
+            MaterialTheme.colorScheme.errorContainer,
+            MaterialTheme.colorScheme.onErrorContainer,
+            Color.Transparent
+        )
+        seleccionada -> Triple(
+            MaterialTheme.colorScheme.primary,
+            Color.White,
+            Color.Transparent
+        )
+        else -> Triple(
+            MaterialTheme.colorScheme.surface,
+            MaterialTheme.colorScheme.onSurface,
+            MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)
+        )
+    }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(bgColor)
+            .then(
+                if (borderColor != Color.Transparent)
+                    Modifier.border(1.dp, borderColor, RoundedCornerShape(12.dp))
+                else Modifier
+            )
+            .clickable(enabled = !pasada, onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 14.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Icono según estado
+        val icon = when {
+            pasada -> Icons.Default.Lock
+            ocupada -> Icons.Default.HourglassEmpty
+            seleccionada -> Icons.Default.Check
+            else -> null
+        }
+        if (icon != null) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = contentColor,
+                modifier = Modifier.size(20.dp)
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+        }
+
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = "$horaInicio  —  $horaFin",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = contentColor
+            )
+            val estado = when {
+                pasada -> "Hora no disponible"
+                ocupada -> "Ocupada · toca para apuntarte a la lista de espera"
+                seleccionada -> "Seleccionada"
+                else -> "Disponible"
+            }
+            Text(
+                text = estado,
+                style = MaterialTheme.typography.bodySmall,
+                color = contentColor.copy(alpha = 0.85f)
+            )
         }
     }
 }
