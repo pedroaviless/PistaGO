@@ -184,12 +184,17 @@ fun PerfilScreen(
                                     .clip(CircleShape)
                             )
                         } else {
-                            // Placeholder con logo
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_pistago_logo),
-                                contentDescription = null,
-                                tint = Color.Unspecified,
-                                modifier = Modifier.size(80.dp)
+                            // Placeholder con iniciales del usuario
+                            Text(
+                                text = uiState.usuario?.nombre
+                                    ?.split(" ")
+                                    ?.filter { it.isNotBlank() }
+                                    ?.take(2)
+                                    ?.joinToString("") { it.first().uppercaseChar().toString() }
+                                    ?: "?",
+                                style = MaterialTheme.typography.displayMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
                             )
                         }
 
