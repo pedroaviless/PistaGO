@@ -28,4 +28,43 @@ interface ReservaRepository : JpaRepository<Reserva, Long> {
     """)
     fun findReservasConfirmadasDesde(usuarioId: Long, desde: LocalDateTime): List<Reserva>
 
+    // ===== Queries para estadísticas =====
+
+    fun countByEstado(estado: EstadoReserva): Long
+
+    @Query("""
+        SELECT COUNT(r) FROM Reserva r 
+        WHERE r.fechaHora >= :inicioDia AND r.fechaHora < :finDia
+    """)
+    fun countReservasDia(inicioDia: LocalDateTime, finDia: LocalDateTime): Long
+
+    @Query("""
+        SELECT p.nombre, COUNT(r) 
+        FROM Reserva r JOIN r.pista p 
+        WHERE r.estado = 'CONFIRMADA'
+        GROUP BY p.id, p.nombre 
+        ORDER BY COUNT(r) DESC
+    """)
+    fun topPistas(): List<Array<Any>>
+
+    @Query("""
+        SELECT u.nombre, COUNT(r) 
+        FROM Reserva r JOIN r.usuario u 
+        WHERE r.estado = 'CONFIRMADA'
+        GROUP BY u.id, u.nombre 
+        ORDER BY COUNT(r) DESC
+    """)
+    fun topUsuarios(): List<Array<Any>>
+
+    @Query(
+        value = """
+            SELECT EXTRACT(DOW FROM fecha_hora)::int AS dow, COUNT(*) 
+            FROM reservas 
+            WHERE estado = 'CONFIRMADA'
+            GROUP BY dow
+            ORDER BY dow
+        """,
+        nativeQuery = true
+    )
+    fun reservasPorDiaSemana(): List<Array<Any>>
 }
