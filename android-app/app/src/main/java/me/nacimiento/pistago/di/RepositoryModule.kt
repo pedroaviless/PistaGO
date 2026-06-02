@@ -13,6 +13,8 @@ import me.nacimiento.pistago.domain.repository.ListaEsperaRepository
 import me.nacimiento.pistago.domain.repository.PistaRepository
 import me.nacimiento.pistago.domain.repository.ReservaRepository
 import javax.inject.Singleton
+import me.nacimiento.pistago.data.repository.EstadisticasRepositoryImpl
+import me.nacimiento.pistago.domain.repository.EstadisticasRepository
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -33,4 +35,7 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindListaEsperaRepository(impl: ListaEsperaRepositoryImpl): ListaEsperaRepository
+
+    @Binds
+    abstract fun bindEstadisticasRepository(impl: EstadisticasRepositoryImpl): EstadisticasRepository
 }

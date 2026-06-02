@@ -23,6 +23,7 @@ import me.nacimiento.pistago.data.remote.dto.PasswordChangeRequest
 import okhttp3.MultipartBody
 import retrofit2.http.Multipart
 import retrofit2.http.Part
+import me.nacimiento.pistago.data.remote.dto.EstadisticasResponse
 
 interface PistaGoApi {
 
@@ -86,6 +87,9 @@ interface PistaGoApi {
     @GET("api/reservas/todas")
     suspend fun getTodasLasReservas(): Response<List<ReservaResponse>>
 
+    // Admin - Estadísticas
+    @GET("api/admin/estadisticas")
+    suspend fun getEstadisticas(): Response<EstadisticasResponse>
     @GET("api/reservas/disponibilidad")
     suspend fun getDisponibilidad(
         @retrofit2.http.Query("fecha") fecha: String,
