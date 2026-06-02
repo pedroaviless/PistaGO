@@ -3,6 +3,7 @@ package me.nacimiento.pistago.presentation.screens.admin
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.SportsTennis
 import androidx.compose.material3.*
@@ -17,6 +18,7 @@ import androidx.compose.ui.unit.dp
 fun AdminMenuScreen(
     onNavigateToPistas: () -> Unit,
     onNavigateToReservas: () -> Unit,
+    onNavigateToEstadisticas: () -> Unit,
     onBack: () -> Unit = {}
 ) {
     Scaffold(
@@ -71,6 +73,16 @@ fun AdminMenuScreen(
                 Icon(Icons.Default.CalendarMonth, contentDescription = null)
                 Spacer(modifier = Modifier.width(12.dp))
                 Text("Gestión de Reservas", fontWeight = FontWeight.Bold)
+            }
+
+            Button(
+                onClick = onNavigateToEstadisticas,
+                modifier = Modifier.fillMaxWidth().height(56.dp),
+                shape = MaterialTheme.shapes.extraLarge
+            ) {
+                Icon(Icons.Default.BarChart, contentDescription = null)
+                Spacer(modifier = Modifier.width(12.dp))
+                Text("Estadísticas", fontWeight = FontWeight.Bold)
             }
         }
     }

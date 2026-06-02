@@ -28,6 +28,7 @@ import me.nacimiento.pistago.presentation.screens.reservas.MisReservasScreen
 import me.nacimiento.pistago.presentation.screens.reservas.ReservarScreen
 import me.nacimiento.pistago.ui.theme.PistaGOTheme
 import javax.inject.Inject
+import me.nacimiento.pistago.presentation.screens.admin.EstadisticasScreen
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -120,12 +121,16 @@ class MainActivity : ComponentActivity() {
                         AdminMenuScreen(
                             onNavigateToPistas = { navController.navigate(Routes.ADMIN_PISTAS) },
                             onNavigateToReservas = { navController.navigate(Routes.ADMIN_RESERVAS) },
+                            onNavigateToEstadisticas = { navController.navigate(Routes.ADMIN_ESTADISTICAS) },
                             onBack = { navController.popBackStack() }
                         )
                     }
 
                     composable(Routes.ADMIN_RESERVAS) {
                         AdminReservasScreen(onBack = { navController.popBackStack() })
+                    }
+                    composable(Routes.ADMIN_ESTADISTICAS) {
+                        EstadisticasScreen(onBack = { navController.popBackStack() })
                     }
 
                     composable(Routes.PISTAS) {

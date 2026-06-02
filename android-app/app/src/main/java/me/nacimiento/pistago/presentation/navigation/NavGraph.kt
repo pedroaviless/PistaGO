@@ -14,6 +14,8 @@ object Routes {
 
     const val ADMIN_RESERVAS = "admin_reservas"
 
+    const val ADMIN_ESTADISTICAS = "admin_estadisticas"
+
     const val ADMIN_MENU = "admin_menu"
     fun reservar(pistaId: Long) = "reservar/$pistaId"
 }
