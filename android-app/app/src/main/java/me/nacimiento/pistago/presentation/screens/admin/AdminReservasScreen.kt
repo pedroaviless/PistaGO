@@ -3,8 +3,14 @@ package me.nacimiento.pistago.presentation.screens.admin
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.filled.Cancel
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -14,15 +20,14 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import me.nacimiento.pistago.domain.model.Reserva
 import me.nacimiento.pistago.presentation.viewmodel.ReservaViewModel
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Schedule
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
-import me.nacimiento.pistago.R
+import java.time.LocalDateTime
+import java.time.ZoneId
+
+private enum class FiltroEstado(val etiqueta: String, val valor: String?) {
+    TODAS("Todas", null),
+    CONFIRMADAS("Confirmadas", "CONFIRMADA"),
+    CANCELADAS("Canceladas", "CANCELADA")
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -31,6 +36,7 @@ fun AdminReservasScreen(
     viewModel: ReservaViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    var filtro by remember { mutableStateOf(FiltroEstado.TODAS) }
 
     LaunchedEffect(Unit) { viewModel.getTodasLasReservas() }
 
@@ -59,22 +65,67 @@ fun AdminReservasScreen(
             )
         }
     ) { padding ->
-        Box(modifier = Modifier.fillMaxSize().padding(padding)) {
-            when {
-                uiState.isLoading -> CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-                uiState.reservas.isEmpty() -> Text("No hay reservas", modifier = Modifier.align(Alignment.Center))
-                else -> {
-                    LazyColumn(
-                        contentPadding = PaddingValues(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        items(uiState.reservas) { reserva ->
-                            AdminReservaCard(
-                                reserva = reserva,
-                                onCancelar = { viewModel.cancelarReserva(reserva.id) }
-                            )
-                        }
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+        ) {
+            // Fila de filtros
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                FiltroEstado.entries.forEach { opcion ->
+                    val seleccionado = filtro == opcion
+                    val total = when (opcion) {
+                        FiltroEstado.TODAS -> uiState.reservas.size
+                        else -> uiState.reservas.count { it.estado == opcion.valor }
                     }
+                    FilterChip(
+                        selected = seleccionado,
+                        onClick = { filtro = opcion },
+                        label = { Text("${opcion.etiqueta} ($total)") }
+                    )
+                }
+            }
+
+            val reservasFiltradas = when (filtro.valor) {
+                null -> uiState.reservas
+                else -> uiState.reservas.filter { it.estado == filtro.valor }
+            }
+
+            Box(modifier = Modifier.fillMaxSize()) {
+                when {
+                    uiState.isLoading ->
+                        CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+
+                    reservasFiltradas.isEmpty() ->
+                        Text(
+                            text = when (filtro) {
+                                FiltroEstado.TODAS -> "No hay reservas"
+                                FiltroEstado.CONFIRMADAS -> "No hay reservas confirmadas"
+                                FiltroEstado.CANCELADAS -> "No hay reservas canceladas"
+                            },
+                            modifier = Modifier.align(Alignment.Center),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+
+                    else ->
+                        LazyColumn(
+                            contentPadding = PaddingValues(
+                                start = 16.dp, end = 16.dp, top = 4.dp, bottom = 16.dp
+                            ),
+                            verticalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            items(reservasFiltradas) { reserva ->
+                                AdminReservaRow(
+                                    reserva = reserva,
+                                    onCancelar = { viewModel.cancelarReserva(reserva.id) }
+                                )
+                            }
+                        }
                 }
             }
         }
@@ -82,7 +133,7 @@ fun AdminReservasScreen(
 }
 
 @Composable
-fun AdminReservaCard(reserva: Reserva, onCancelar: () -> Unit) {
+private fun AdminReservaRow(reserva: Reserva, onCancelar: () -> Unit) {
     var showDialog by remember { mutableStateOf(false) }
 
     if (showDialog) {
@@ -104,108 +155,146 @@ fun AdminReservaCard(reserva: Reserva, onCancelar: () -> Unit) {
         )
     }
 
-    val imageRes = if (reserva.nombrePista.contains("1") || reserva.nombrePista.contains("2"))
-        R.drawable.pista_tierra else R.drawable.pista_dura
+    val esConfirmada = reserva.estado == "CONFIRMADA"
+    val haExpirado = run {
+        val ahora = LocalDateTime.now(ZoneId.of("Europe/Madrid"))
+        // fechaHora viene como "2026-06-02T18:00:00", LocalDateTime.parse lo lee bien
+        val fin = LocalDateTime.parse(reserva.fechaHora).plusMinutes(reserva.duracionMin.toLong())
+        fin.isBefore(ahora)
+    }
+    val puedeCancelarse = esConfirmada && !haExpirado
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         shape = RoundedCornerShape(12.dp)
     ) {
-        Column {
-            Box {
-                Image(
-                    painter = painterResource(id = imageRes),
-                    contentDescription = reserva.nombrePista,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(100.dp)
-                        .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
+        Column(modifier = Modifier.padding(14.dp)) {
+            // Línea 1: pista + estado
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = reserva.nombrePista,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.weight(1f)
                 )
-                Surface(
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(8.dp),
-                    shape = RoundedCornerShape(50),
-                    color = if (reserva.estado == "CONFIRMADA")
-                        MaterialTheme.colorScheme.primary
-                    else
-                        MaterialTheme.colorScheme.error
-                ) {
-                    Text(
-                        text = reserva.estado,
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
+                EstadoChip(estado = reserva.estado)
             }
 
-            Column(modifier = Modifier.padding(12.dp)) {
-                Row(
+            Spacer(modifier = Modifier.height(6.dp))
+
+            // Línea 2: usuario · fecha · hora
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconoTexto(
+                    icon = Icons.Default.Person,
+                    text = reserva.nombreUsuario,
+                    modifier = Modifier.weight(1f)
+                )
+                IconoTexto(
+                    icon = Icons.Default.CalendarToday,
+                    text = reserva.fechaHora.substring(0, 10)
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                IconoTexto(
+                    icon = Icons.Default.Schedule,
+                    text = reserva.fechaHora.substring(11, 16)
+                )
+            }
+
+            if (puedeCancelarse) {
+                Spacer(modifier = Modifier.height(10.dp))
+                OutlinedButton(
+                    onClick = { showDialog = true },
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error
+                    )
                 ) {
-                    Text(
-                        text = reserva.nombrePista,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = reserva.fechaHora.substring(0, 10),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(4.dp))
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Default.Person,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = reserva.nombreUsuario,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Default.Schedule,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = reserva.fechaHora.substring(11, 16) + " h",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-
-                if (reserva.estado == "CONFIRMADA") {
-                    Spacer(modifier = Modifier.height(10.dp))
-                    OutlinedButton(
-                        onClick = { showDialog = true },
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = MaterialTheme.colorScheme.error
-                        )
-                    ) {
-                        Text("CANCELAR RESERVA", fontWeight = FontWeight.Bold)
-                    }
+                    Text("CANCELAR RESERVA", fontWeight = FontWeight.Bold)
                 }
             }
         }
     }
 }
+
+@Composable
+private fun IconoTexto(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    text: String,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            modifier = Modifier.size(15.dp),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(modifier = Modifier.width(5.dp))
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
+
+@Composable
+private fun EstadoChip(estado: String) {
+    val (bgColor, contentColor, icon, label) = when (estado) {
+        "CONFIRMADA" -> Quad(
+            MaterialTheme.colorScheme.primaryContainer,
+            MaterialTheme.colorScheme.onPrimaryContainer,
+            Icons.Default.CheckCircle,
+            "Confirmada"
+        )
+        "CANCELADA" -> Quad(
+            MaterialTheme.colorScheme.errorContainer,
+            MaterialTheme.colorScheme.onErrorContainer,
+            Icons.Default.Cancel,
+            "Cancelada"
+        )
+        else -> Quad(
+            MaterialTheme.colorScheme.surfaceVariant,
+            MaterialTheme.colorScheme.onSurfaceVariant,
+            Icons.Default.Schedule,
+            estado
+        )
+    }
+    Surface(
+        shape = RoundedCornerShape(50),
+        color = bgColor
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = contentColor,
+                modifier = Modifier.size(14.dp)
+            )
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall,
+                color = contentColor,
+                fontWeight = FontWeight.Bold
+            )
+        }
+    }
+}
+
+/** Helper para devolver 4 valores juntos (las component1..4 las genera data class). */
+private data class Quad<A, B, C, D>(val a: A, val b: B, val c: C, val d: D)
