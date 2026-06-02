@@ -19,4 +19,13 @@ interface ReservaRepository : JpaRepository<Reserva, Long> {
 
     @Query("SELECT COUNT(r) FROM Reserva r WHERE r.usuario.id = :usuarioId AND r.fechaHora >= :inicioSemana AND r.fechaHora < :finSemana AND r.estado = 'CONFIRMADA'")
     fun countReservasSemana(usuarioId: Long, inicioSemana: LocalDateTime, finSemana: LocalDateTime): Long
+
+    @Query("""
+        SELECT r FROM Reserva r 
+        WHERE r.usuario.id = :usuarioId 
+          AND r.estado = 'CONFIRMADA' 
+          AND r.fechaHora >= :desde
+    """)
+    fun findReservasConfirmadasDesde(usuarioId: Long, desde: LocalDateTime): List<Reserva>
+
 }

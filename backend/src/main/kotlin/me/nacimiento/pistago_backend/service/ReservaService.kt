@@ -3,6 +3,7 @@ package me.nacimiento.pistago_backend.service
 import me.nacimiento.pistago_backend.domain.entity.Notificacion
 import me.nacimiento.pistago_backend.domain.entity.Reserva
 import me.nacimiento.pistago_backend.domain.enums.EstadoReserva
+import me.nacimiento.pistago_backend.domain.enums.RolUsuario
 import me.nacimiento.pistago_backend.domain.enums.TipoNotificacion
 import me.nacimiento.pistago_backend.domain.repository.ListaEsperaRepository
 import me.nacimiento.pistago_backend.domain.repository.NotificacionRepository
@@ -38,7 +39,25 @@ class ReservaService(
 
         if (!pista.activa) throw IllegalArgumentException("La pista no está activa")
 
+        // Regla: un usuario USUARIO solo puede tener una reserva activa simultánea.
+        // Admin y Superusuario quedan exentos.
+        if (usuario.rol == RolUsuario.USUARIO) {
+            val ahora = LocalDateTime.now()
+            // Buscamos reservas confirmadas cuya hora de inicio sea desde hace una jornada
+            // (suficiente margen: las reservas duran como máximo unas horas, no días)
+            val desde = ahora.minusHours(24)
+            val reservasRecientes = reservaRepository.findReservasConfirmadasDesde(usuario.id, desde)
+            val tieneReservaActiva = reservasRecientes.any { reserva ->
+                val finReserva = reserva.fechaHora.plusMinutes(reserva.duracionMin.toLong())
+                finReserva.isAfter(ahora)
+            }
+            if (tieneReservaActiva) {
+                throw IllegalArgumentException("Ya tienes una reserva activa. Espera a que termine para reservar otra.")
+            }
+        }
+
         val existente = reservaRepository.findReservaActiva(request.pistaId, request.fechaHora)
+
         if (existente != null) throw IllegalArgumentException("La pista ya está reservada en ese horario")
 
         val reserva = Reserva(

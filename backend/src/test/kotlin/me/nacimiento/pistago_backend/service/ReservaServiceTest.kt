@@ -5,6 +5,7 @@ import me.nacimiento.pistago_backend.domain.entity.Reserva
 import me.nacimiento.pistago_backend.domain.entity.Usuario
 import me.nacimiento.pistago_backend.domain.entity.ListaEspera
 import me.nacimiento.pistago_backend.domain.enums.EstadoReserva
+import me.nacimiento.pistago_backend.domain.enums.RolUsuario
 import me.nacimiento.pistago_backend.domain.repository.ListaEsperaRepository
 import me.nacimiento.pistago_backend.domain.repository.NotificacionRepository
 import me.nacimiento.pistago_backend.domain.repository.PistaRepository
@@ -139,6 +140,94 @@ class ReservaServiceTest {
         }
         assertEquals("La pista ya está reservada en ese horario", ex.message)
         verify(reservaRepository, never()).save(any<Reserva>())
+    }
+    @Test
+    @DisplayName("crear: lanza excepción si el usuario ya tiene una reserva activa")
+    fun crear_yaTieneReservaActiva() {
+        val ahoraMas2h = LocalDateTime.now().plusHours(2)
+        val request = ReservaRequest(pistaId = 1, fechaHora = fechaHora, duracionMin = 90)
+        val reservaActiva = Reserva(
+            id = 50,
+            usuario = usuario,
+            pista = pista,
+            fechaHora = ahoraMas2h,
+            duracionMin = 90,
+            estado = EstadoReserva.CONFIRMADA
+        )
+        whenever(usuarioRepository.findByEmail("lucia@pistago.com")).thenReturn(usuario)
+        whenever(pistaRepository.findById(1)).thenReturn(Optional.of(pista))
+        whenever(reservaRepository.findReservasConfirmadasDesde(any(), any()))
+            .thenReturn(listOf(reservaActiva))
+
+        val ex = assertThrows(IllegalArgumentException::class.java) {
+            reservaService.crear("lucia@pistago.com", request)
+        }
+        assertEquals("Ya tienes una reserva activa. Espera a que termine para reservar otra.", ex.message)
+        verify(reservaRepository, never()).save(any<Reserva>())
+    }
+
+    @Test
+    @DisplayName("crear: permite reservar si la reserva anterior ya ha terminado")
+    fun crear_reservaAnteriorExpirada() {
+        val haceTresHoras = LocalDateTime.now().minusHours(3)
+        val request = ReservaRequest(pistaId = 1, fechaHora = fechaHora, duracionMin = 90)
+        val reservaExpirada = Reserva(
+            id = 50,
+            usuario = usuario,
+            pista = pista,
+            fechaHora = haceTresHoras,    // empezó hace 3h
+            duracionMin = 90,             // duró 1h30, así que terminó hace 1h30
+            estado = EstadoReserva.CONFIRMADA
+        )
+        whenever(usuarioRepository.findByEmail("lucia@pistago.com")).thenReturn(usuario)
+        whenever(pistaRepository.findById(1)).thenReturn(Optional.of(pista))
+        whenever(reservaRepository.findReservasConfirmadasDesde(any(), any()))
+            .thenReturn(listOf(reservaExpirada))
+        whenever(reservaRepository.findReservaActiva(1, fechaHora)).thenReturn(null)
+        whenever(reservaRepository.save(any<Reserva>())).thenAnswer { invocation ->
+            (invocation.arguments[0] as Reserva).copy(id = 100)
+        }
+
+        val resultado = reservaService.crear("lucia@pistago.com", request)
+
+        assertNotNull(resultado)
+        assertEquals(EstadoReserva.CONFIRMADA, resultado.estado)
+        verify(reservaRepository).save(any<Reserva>())
+    }
+
+    @Test
+    @DisplayName("crear: el administrador queda exento de la regla de reserva única")
+    fun crear_adminExentoDeRegla() {
+        val admin = Usuario(
+            id = 99,
+            nombre = "Admin",
+            email = "admin@pistago.com",
+            rol = RolUsuario.ADMINISTRADOR
+        )
+        val ahoraMas2h = LocalDateTime.now().plusHours(2)
+        val request = ReservaRequest(pistaId = 1, fechaHora = fechaHora, duracionMin = 90)
+        val reservaActivaDelAdmin = Reserva(
+            id = 50,
+            usuario = admin,
+            pista = pista,
+            fechaHora = ahoraMas2h,
+            duracionMin = 90,
+            estado = EstadoReserva.CONFIRMADA
+        )
+        whenever(usuarioRepository.findByEmail("admin@pistago.com")).thenReturn(admin)
+        whenever(pistaRepository.findById(1)).thenReturn(Optional.of(pista))
+        whenever(reservaRepository.findReservaActiva(1, fechaHora)).thenReturn(null)
+        whenever(reservaRepository.save(any<Reserva>())).thenAnswer { invocation ->
+            (invocation.arguments[0] as Reserva).copy(id = 100)
+        }
+        // Nota: NO mockeamos findReservasConfirmadasDesde porque el admin no debe llegar a esa comprobación
+
+        val resultado = reservaService.crear("admin@pistago.com", request)
+
+        assertNotNull(resultado)
+        verify(reservaRepository).save(any<Reserva>())
+        // Verificamos que NUNCA se llama a findReservasConfirmadasDesde para un admin (queda exento)
+        verify(reservaRepository, never()).findReservasConfirmadasDesde(any(), any())
     }
 
     // ---------------------------------------------------------------
