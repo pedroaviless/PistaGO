@@ -5,6 +5,7 @@ import me.nacimiento.pistago.data.remote.dto.ListaEsperaRequest
 import me.nacimiento.pistago.domain.model.ListaEspera
 import me.nacimiento.pistago.domain.repository.ListaEsperaRepository
 import javax.inject.Inject
+import me.nacimiento.pistago.data.remote.extractErrorMessage
 
 class ListaEsperaRepositoryImpl @Inject constructor(
     private val api: PistaGoApi
@@ -17,7 +18,7 @@ class ListaEsperaRepositoryImpl @Inject constructor(
                 val body = response.body()!!
                 Result.success(ListaEspera(body.id, body.pistaId, body.nombrePista, body.fechaHora, body.posicion, "ACTIVO"))
             } else {
-                Result.failure(Exception("Error: ${response.code()}"))
+                Result.failure(Exception(response.extractErrorMessage("no se pudo apuntar a la lista de espera")))
             }
         } catch (e: Exception) {
             Result.failure(e)
@@ -33,7 +34,7 @@ class ListaEsperaRepositoryImpl @Inject constructor(
                 }
                 Result.success(lista)
             } else {
-                Result.failure(Exception("Error: ${response.code()}"))
+                Result.failure(Exception(response.extractErrorMessage("no se pudo cargar la lista de espera")))
             }
         } catch (e: Exception) {
             Result.failure(e)
@@ -46,7 +47,7 @@ class ListaEsperaRepositoryImpl @Inject constructor(
             if (response.isSuccessful) {
                 Result.success(Unit)
             } else {
-                Result.failure(Exception("Error: ${response.code()}"))
+                Result.failure(Exception(response.extractErrorMessage("no se pudo salir de la lista de espera")))
             }
         } catch (e: Exception) {
             Result.failure(e)

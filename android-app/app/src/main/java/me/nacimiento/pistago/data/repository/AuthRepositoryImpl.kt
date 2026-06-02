@@ -18,6 +18,7 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import javax.inject.Inject
+import me.nacimiento.pistago.data.remote.extractErrorMessage
 
 class AuthRepositoryImpl @Inject constructor(
     private val api: PistaGoApi,
@@ -33,7 +34,7 @@ class AuthRepositoryImpl @Inject constructor(
                 tokenDataStore.saveSession(body.token, body.email, body.nombre, body.rol)
                 Result.success(Usuario(body.token, body.email, body.nombre, body.rol))
             } else {
-                Result.failure(Exception("Error: ${response.code()}"))
+                Result.failure(Exception(response.extractErrorMessage("no se pudo registrar el usuario")))
             }
         } catch (e: Exception) {
             Result.failure(e)
@@ -48,7 +49,7 @@ class AuthRepositoryImpl @Inject constructor(
                 tokenDataStore.saveSession(body.token, body.email, body.nombre, body.rol)
                 Result.success(Usuario(body.token, body.email, body.nombre, body.rol))
             } else {
-                Result.failure(Exception("Credenciales incorrectas"))
+                Result.failure(Exception(response.extractErrorMessage("credenciales incorrectas")))
             }
         } catch (e: Exception) {
             Result.failure(e)
@@ -81,7 +82,7 @@ class AuthRepositoryImpl @Inject constructor(
         return try {
             val response = api.getPerfil()
             if (response.isSuccessful) Result.success(response.body()!!)
-            else Result.failure(Exception("Error: ${response.code()}"))
+            else Result.failure(Exception(response.extractErrorMessage("no se pudo cargar el perfil")))
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -94,7 +95,7 @@ class AuthRepositoryImpl @Inject constructor(
         return try {
             val response = api.actualizarPerfil(PerfilRequest(nombre, telefono))
             if (response.isSuccessful) Result.success(response.body()!!)
-            else Result.failure(Exception("Error al actualizar perfil: ${response.code()}"))
+            else Result.failure(Exception(response.extractErrorMessage("no se pudo actualizar el perfil")))
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -107,7 +108,7 @@ class AuthRepositoryImpl @Inject constructor(
         return try {
             val response = api.cambiarPassword(PasswordChangeRequest(passwordActual, passwordNueva))
             if (response.isSuccessful) Result.success(Unit)
-            else Result.failure(Exception("Contraseña actual incorrecta"))
+            else Result.failure(Exception(response.extractErrorMessage("contraseña actual incorrecta")))
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -133,7 +134,7 @@ class AuthRepositoryImpl @Inject constructor(
 
             val response = api.subirFotoPerfil(part)
             if (response.isSuccessful) Result.success(response.body()!!)
-            else Result.failure(Exception("Error al subir foto: ${response.code()}"))
+            else Result.failure(Exception(response.extractErrorMessage("no se pudo subir la foto")))
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -144,7 +145,7 @@ class AuthRepositoryImpl @Inject constructor(
                 .token.await()
             val response = api.updateFcmToken(mapOf("fcmToken" to fcmToken))
             if (response.isSuccessful) Result.success(Unit)
-            else Result.failure(Exception("Error registrando FCM token: ${response.code()}"))
+            else Result.failure(Exception(response.extractErrorMessage("no se pudo registrar el token FCM")))
         } catch (e: Exception) {
             Result.failure(e)
         }

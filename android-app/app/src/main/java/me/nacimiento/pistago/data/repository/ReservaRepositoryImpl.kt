@@ -1,7 +1,6 @@
 package me.nacimiento.pistago.data.repository
 
-import com.google.gson.Gson
-import com.google.gson.JsonSyntaxException
+import me.nacimiento.pistago.data.remote.extractErrorMessage
 import me.nacimiento.pistago.data.remote.api.PistaGoApi
 import me.nacimiento.pistago.data.remote.dto.ReservaRequest
 import me.nacimiento.pistago.domain.model.Reserva
@@ -13,31 +12,7 @@ import javax.inject.Inject
  * DTO interno para parsear el cuerpo de error que devuelve el backend
  * (ver GlobalExceptionHandler en el backend).
  */
-private data class ApiErrorBody(
-    val status: Int? = null,
-    val error: String? = null,
-    val message: String? = null,
-    val path: String? = null
-)
 
-/**
- * Extrae un mensaje legible del errorBody de Retrofit.
- * Si el cuerpo es un JSON con campo "message" (formato GlobalExceptionHandler),
- * lo devuelve. Si no, devuelve un mensaje genérico con el código HTTP.
- */
-private fun <T> Response<T>.extractErrorMessage(): String {
-    val raw = errorBody()?.string().orEmpty()
-    if (raw.isNotBlank()) {
-        try {
-            val parsed = Gson().fromJson(raw, ApiErrorBody::class.java)
-            val msg = parsed?.message
-            if (!msg.isNullOrBlank()) return msg
-        } catch (_: JsonSyntaxException) {
-            // El cuerpo no era JSON con el formato esperado; caemos al fallback.
-        }
-    }
-    return "Error ${code()}: no se pudo completar la operación"
-}
 
 class ReservaRepositoryImpl @Inject constructor(
     private val api: PistaGoApi
