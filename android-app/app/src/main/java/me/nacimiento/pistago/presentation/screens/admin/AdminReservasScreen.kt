@@ -86,7 +86,20 @@ fun AdminReservasScreen(
                     FilterChip(
                         selected = seleccionado,
                         onClick = { filtro = opcion },
-                        label = { Text("${opcion.etiqueta} ($total)") }
+                        label = {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(
+                                    text = opcion.etiqueta,
+                                    style = MaterialTheme.typography.labelLarge
+                                )
+                                Text(
+                                    text = "($total)",
+                                    style = MaterialTheme.typography.labelSmall
+                                )
+                            }
+                        }
                     )
                 }
             }
