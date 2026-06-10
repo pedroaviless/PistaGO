@@ -89,7 +89,9 @@ class ReservaService(
         val reserva = reservaRepository.findById(reservaId)
             .orElseThrow { IllegalArgumentException("Reserva no encontrada") }
 
-        if (reserva.usuario.id != usuario.id) throw IllegalArgumentException("No autorizado")
+        if (reserva.usuario.id != usuario.id && usuario.rol != RolUsuario.ADMINISTRADOR) {
+            throw IllegalArgumentException("No autorizado")
+        }
         if (reserva.estado != EstadoReserva.CONFIRMADA) throw IllegalArgumentException("La reserva no se puede cancelar")
 
         val cancelada = reserva.copy(
