@@ -20,7 +20,8 @@ class EstadisticasService(
         val totalUsuarios = usuarioRepository.count()
         val confirmadas = reservaRepository.countByEstado(EstadoReserva.CONFIRMADA)
         val canceladas = reservaRepository.countByEstado(EstadoReserva.CANCELADA)
-        val total = confirmadas + canceladas
+        val expiradas = reservaRepository.countByEstado(EstadoReserva.EXPIRADA)
+        val total = confirmadas + canceladas + expiradas
 
         val inicioHoy = LocalDate.now().atStartOfDay()
         val finHoy = inicioHoy.plusDays(1)
@@ -63,7 +64,8 @@ class EstadisticasService(
             tasaCancelacion = String.format("%.1f", tasaCancelacion).replace(",", ".").toDouble(),
             topPistas = topPistas,
             topUsuarios = topUsuarios,
-            reservasPorDiaSemana = reservasPorDia
+            reservasPorDiaSemana = reservasPorDia,
+            reservasExpiradas = expiradas
         )
     }
 }

@@ -41,7 +41,7 @@ interface ReservaRepository : JpaRepository<Reserva, Long> {
     @Query("""
         SELECT p.nombre, COUNT(r) 
         FROM Reserva r JOIN r.pista p 
-        WHERE r.estado = 'CONFIRMADA'
+        WHERE r.estado IN ('CONFIRMADA', 'EXPIRADA')
         GROUP BY p.id, p.nombre 
         ORDER BY COUNT(r) DESC
     """)
@@ -50,7 +50,7 @@ interface ReservaRepository : JpaRepository<Reserva, Long> {
     @Query("""
         SELECT u.nombre, COUNT(r) 
         FROM Reserva r JOIN r.usuario u 
-        WHERE r.estado = 'CONFIRMADA'
+        WHERE r.estado IN ('CONFIRMADA', 'EXPIRADA')
         GROUP BY u.id, u.nombre 
         ORDER BY COUNT(r) DESC
     """)
@@ -60,7 +60,7 @@ interface ReservaRepository : JpaRepository<Reserva, Long> {
         value = """
             SELECT EXTRACT(DOW FROM fecha_hora)::int AS dow, COUNT(*) 
             FROM reservas 
-            WHERE estado = 'CONFIRMADA'
+            WHERE estado IN ('CONFIRMADA', 'EXPIRADA')
             GROUP BY dow
             ORDER BY dow
         """,
