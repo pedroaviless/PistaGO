@@ -5,6 +5,7 @@ data class EstadisticasResponse(
     val totalReservas: Long,
     val reservasConfirmadas: Long,
     val reservasCanceladas: Long,
+    val reservasExpiradas: Long,
     val reservasHoy: Long,
     val tasaCancelacion: Double,
     val topPistas: List<PistaStat>,

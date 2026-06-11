@@ -100,6 +100,11 @@ class ReservaService(
         )
         val guardada = reservaRepository.save(cancelada)
 
+        // Si quien cancela NO es el dueño, avisar al dueño afectado
+        if (reserva.usuario.id != usuario.id) {
+            notificarCancelacionPorAdmin(reserva)
+        }
+
         // Avisar al primero de la lista de espera de esa pista+franja (si hay)
         notificarPrimeroEnEspera(reserva)
 
@@ -218,4 +223,48 @@ class ReservaService(
     fun getTodas(): List<ReservaResponse> {
         return reservaRepository.findAll().map { it.toResponse() }
     }
+
+    /**
+     * Cuando un administrador cancela la reserva de otro usuario,
+     * envía un push al dueño avisando y registra la notificación.
+     */
+    private fun notificarCancelacionPorAdmin(reservaCancelada: Reserva) {
+        val destinatario = reservaCancelada.usuario
+        val nombrePista = reservaCancelada.pista.nombre
+        val fechaFormateada = reservaCancelada.fechaHora.format(
+            DateTimeFormatter.ofPattern("dd/MM/yyyy 'a las' HH:mm")
+        )
+
+        val titulo = "Tu reserva ha sido cancelada"
+        val mensaje = "Un administrador ha cancelado tu reserva en $nombrePista del $fechaFormateada."
+
+        val enviada = fcmService.enviarNotificacion(
+            fcmToken = destinatario.fcmToken,
+            titulo = titulo,
+            cuerpo = mensaje,
+            datos = mapOf(
+                "tipo" to TipoNotificacion.CANCELACION_ADMIN.name,
+                "reservaId" to reservaCancelada.id.toString(),
+                "pistaId" to reservaCancelada.pista.id.toString(),
+                "fechaHora" to reservaCancelada.fechaHora.toString()
+            )
+        )
+
+        notificacionRepository.save(
+            Notificacion(
+                usuario = destinatario,
+                tipo = TipoNotificacion.CANCELACION_ADMIN,
+                titulo = titulo,
+                mensaje = mensaje,
+                leida = false,
+                reserva = reservaCancelada,
+                enviadaPush = enviada,
+                createdAt = LocalDateTime.now()
+            )
+        )
+
+        log.info("Notificación de cancelación por admin ${if (enviada) "enviada" else "registrada (push falló)"} a usuario=${destinatario.id}")
+    }
+
+
 }
