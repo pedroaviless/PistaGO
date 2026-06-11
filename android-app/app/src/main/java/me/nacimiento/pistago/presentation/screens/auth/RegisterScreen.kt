@@ -1,11 +1,13 @@
 package me.nacimiento.pistago.presentation.screens.auth
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -13,6 +15,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import me.nacimiento.pistago.R
 import me.nacimiento.pistago.presentation.viewmodel.AuthViewModel
 
 @Composable
@@ -38,7 +41,12 @@ fun RegisterScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text(text = "🎾", fontSize = 72.sp)
+        // Logo PistaGO
+        Image(
+            painter = painterResource(id = R.drawable.pistago_symbol),
+            contentDescription = "PistaGO",
+            modifier = Modifier.size(120.dp)
+        )
 
         Spacer(modifier = Modifier.height(16.dp))
 
