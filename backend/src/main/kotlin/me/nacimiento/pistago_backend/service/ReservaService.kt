@@ -1,6 +1,7 @@
 package me.nacimiento.pistago_backend.service
 
 import me.nacimiento.pistago_backend.domain.entity.Notificacion
+import me.nacimiento.pistago_backend.domain.entity.Pista
 import me.nacimiento.pistago_backend.domain.entity.Reserva
 import me.nacimiento.pistago_backend.domain.enums.EstadoReserva
 import me.nacimiento.pistago_backend.domain.enums.RolUsuario
@@ -107,8 +108,10 @@ class ReservaService(
 
         // Avisar al primero de la lista de espera de esa pista+franja (si hay)
         notificarPrimeroEnEspera(reserva)
-
         return guardada.toResponse()
+
+
+
     }
 
     /**
@@ -153,7 +156,7 @@ class ReservaService(
         listaEsperaRepository.save(
             primero.copy(
                 notificado = true,
-                expiraEn = LocalDateTime.now().plusMinutes(10)
+                expiraEn = LocalDateTime.now().plusMinutes(3)   // ← antes 10
             )
         )
 
@@ -266,5 +269,76 @@ class ReservaService(
         log.info("Notificación de cancelación por admin ${if (enviada) "enviada" else "registrada (push falló)"} a usuario=${destinatario.id}")
     }
 
+    /**
+     * Recorre las entradas de lista de espera ya notificadas cuyo plazo de confirmación
+     * ha expirado, las descarta y notifica al siguiente de la cola para esa pista+franja.
+     * Lo invoca el scheduler cada 30 segundos.
+     */
+    @Transactional
+    fun procesarColasExpiradas() {
+        val expiradas = listaEsperaRepository.findExpiradas(LocalDateTime.now())
+        if (expiradas.isEmpty()) return
+
+        log.info("Procesando ${expiradas.size} entradas expiradas de la lista de espera")
+
+        expiradas.forEach { entrada ->
+            listaEsperaRepository.delete(entrada)
+            log.info("Entrada expirada eliminada: usuario=${entrada.usuario.id}, pista=${entrada.pista.id}, fecha=${entrada.fechaHora}")
+            notificarSiguienteEnCola(entrada.pista, entrada.fechaHora)
+        }
+    }
+
+    /**
+     * Equivalente a notificarPrimeroEnEspera, pero invocado desde la rotación automática.
+     * No se asocia a ninguna reserva concreta porque la rotación es independiente de una cancelación.
+     */
+    private fun notificarSiguienteEnCola(pista: Pista, fechaHora: LocalDateTime) {
+        val cola = listaEsperaRepository.findByPistaIdAndFechaHoraOrderByCreatedAtAsc(pista.id!!, fechaHora)
+        val siguiente = cola.firstOrNull { !it.notificado } ?: run {
+            log.info("Cola agotada para pista=${pista.id} fecha=$fechaHora")
+            return
+        }
+
+        val destinatario = siguiente.usuario
+        val fechaFormateada = fechaHora.format(
+            DateTimeFormatter.ofPattern("dd/MM/yyyy 'a las' HH:mm")
+        )
+
+        val titulo = "¡Tu turno en ${pista.nombre}!"
+        val mensaje = "Se ha liberado una plaza en ${pista.nombre} el $fechaFormateada. ¡Reserva ya antes de que otro la coja!"
+
+        val enviada = fcmService.enviarNotificacion(
+            fcmToken = destinatario.fcmToken,
+            titulo = titulo,
+            cuerpo = mensaje,
+            datos = mapOf(
+                "tipo" to TipoNotificacion.TURNO_ESPERA.name,
+                "pistaId" to pista.id.toString(),
+                "fechaHora" to fechaHora.toString()
+            )
+        )
+
+        listaEsperaRepository.save(
+            siguiente.copy(
+                notificado = true,
+                expiraEn = LocalDateTime.now().plusMinutes(3)
+            )
+        )
+
+        notificacionRepository.save(
+            Notificacion(
+                usuario = destinatario,
+                tipo = TipoNotificacion.TURNO_ESPERA,
+                titulo = titulo,
+                mensaje = mensaje,
+                leida = false,
+                reserva = null,
+                enviadaPush = enviada,
+                createdAt = LocalDateTime.now()
+            )
+        )
+
+        log.info("Rotación de cola: notificación ${if (enviada) "enviada" else "registrada (push falló)"} a usuario=${destinatario.id}")
+    }
 
 }
