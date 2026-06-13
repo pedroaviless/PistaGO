@@ -78,7 +78,7 @@ class ReservaService(
     fun getMisReservas(email: String): List<ReservaResponse> {
         val usuario = usuarioRepository.findByEmail(email)
             ?: throw IllegalArgumentException("Usuario no encontrado")
-        return reservaRepository.findByUsuarioId(usuario.id!!)
+        return reservaRepository.findByUsuarioId(usuario.id)
             .map { it.toResponse() }
     }
 
@@ -121,7 +121,7 @@ class ReservaService(
      */
     private fun notificarPrimeroEnEspera(reservaCancelada: Reserva) {
         val cola = listaEsperaRepository.findByPistaIdAndFechaHoraOrderByCreatedAtAsc(
-            reservaCancelada.pista.id!!,
+            reservaCancelada.pista.id,
             reservaCancelada.fechaHora
         )
 
@@ -187,10 +187,10 @@ class ReservaService(
     }
 
     private fun Reserva.toResponse() = ReservaResponse(
-        id = id!!,
-        pistaId = pista.id!!,
+        id = id,
+        pistaId = pista.id,
         nombrePista = pista.nombre,
-        usuarioId = usuario.id!!,
+        usuarioId = usuario.id,
         nombreUsuario = usuario.nombre,
         fechaHora = fechaHora,
         duracionMin = duracionMin,
@@ -268,7 +268,7 @@ class ReservaService(
      * No se asocia a ninguna reserva concreta porque la rotación es independiente de una cancelación.
      */
     private fun notificarSiguienteEnCola(pista: Pista, fechaHora: LocalDateTime) {
-        val cola = listaEsperaRepository.findByPistaIdAndFechaHoraOrderByCreatedAtAsc(pista.id!!, fechaHora)
+        val cola = listaEsperaRepository.findByPistaIdAndFechaHoraOrderByCreatedAtAsc(pista.id, fechaHora)
         val siguiente = cola.firstOrNull { !it.notificado } ?: run {
             log.info("Cola agotada para pista=${pista.id} fecha=$fechaHora")
             return
