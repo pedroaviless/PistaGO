@@ -8,10 +8,10 @@ import java.time.LocalDateTime
 
 @Repository
 interface ListaEsperaRepository : JpaRepository<ListaEspera, Long> {
-    // Mantengo el método antiguo por si lo usas en algún otro sitio
-    fun findByPistaIdAndFechaHoraOrderByPosicionAsc(pistaId: Long, fechaHora: LocalDateTime): List<ListaEspera>
 
-    // NUEVO: ordenado por createdAt
+
+
+    // ordenado por createdAt
     fun findByPistaIdAndFechaHoraOrderByCreatedAtAsc(pistaId: Long, fechaHora: LocalDateTime): List<ListaEspera>
 
     fun findByUsuarioIdAndPistaIdAndFechaHora(usuarioId: Long, pistaId: Long, fechaHora: LocalDateTime): ListaEspera?

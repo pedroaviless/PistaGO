@@ -50,7 +50,7 @@ class PistaService(
     }
 
     private fun Pista.toResponse() = PistaResponse(
-        id = id!!,
+        id = id,
         nombre = nombre,
         tipo = tipo,
         descripcion = descripcion,

@@ -5,6 +5,9 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
 
+
+//Este interface está prepara para trabajo futuro
+
 @Repository
 interface BloqueoHorarioRepository : JpaRepository<BloqueoHorario, Long> {
     fun findByPistaId(pistaId: Long): List<BloqueoHorario>
