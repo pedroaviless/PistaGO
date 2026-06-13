@@ -177,32 +177,7 @@ class ReservaService(
         log.info("Notificación de turno de espera ${if (enviada) "enviada" else "registrada (push falló)"} a usuario=${destinatario.id}")
     }
 
-    @Transactional
-    fun getHorasOcupadasPorFecha(fecha: String): List<String> {
-        val inicio = java.time.LocalDate.parse(fecha).atStartOfDay()
-        val fin = inicio.plusDays(1)
-
-        val reservasDelDia = reservaRepository.findByFechaHoraBetween(inicio, fin)
-            .filter { it.estado == EstadoReserva.CONFIRMADA }
-
-        val pistasActivasPorTipo = pistaRepository.findAll()
-            .filter { it.activa }
-            .groupBy { it.tipo }
-            .mapValues { it.value.size }
-
-        return reservasDelDia
-            .groupBy { it.fechaHora.toLocalTime().toString().substring(0, 5) }
-            .filter { (_, reservasHora) ->
-                val reservasPorTipo = reservasHora.groupBy { it.pista.tipo }.mapValues { it.value.size }
-                reservasPorTipo.all { (tipo, count) ->
-                    val totalPistas = pistasActivasPorTipo[tipo] ?: 0
-                    count >= totalPistas
-                }
-            }
-            .keys.toList()
-    }
-
-    @Transactional
+       @Transactional
     fun getHorasOcupadasPorPistaYFecha(fecha: String, pistaId: Long): List<String> {
         val inicio = java.time.LocalDate.parse(fecha).atStartOfDay()
         val fin = inicio.plusDays(1)
