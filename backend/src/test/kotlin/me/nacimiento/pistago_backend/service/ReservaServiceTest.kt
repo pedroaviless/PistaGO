@@ -206,14 +206,7 @@ class ReservaServiceTest {
         )
         val ahoraMas2h = LocalDateTime.now().plusHours(2)
         val request = ReservaRequest(pistaId = 1, fechaHora = fechaHora, duracionMin = 90)
-        val reservaActivaDelAdmin = Reserva(
-            id = 50,
-            usuario = admin,
-            pista = pista,
-            fechaHora = ahoraMas2h,
-            duracionMin = 90,
-            estado = EstadoReserva.CONFIRMADA
-        )
+
         whenever(usuarioRepository.findByEmail("admin@pistago.com")).thenReturn(admin)
         whenever(pistaRepository.findById(1)).thenReturn(Optional.of(pista))
         whenever(reservaRepository.findReservaActiva(1, fechaHora)).thenReturn(null)
