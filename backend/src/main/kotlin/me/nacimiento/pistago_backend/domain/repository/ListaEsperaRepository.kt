@@ -5,6 +5,10 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
+import org.springframework.data.jpa.repository.Modifying
+
+import org.springframework.data.repository.query.Param
+
 
 @Repository
 interface ListaEsperaRepository : JpaRepository<ListaEspera, Long> {
@@ -24,5 +28,9 @@ interface ListaEsperaRepository : JpaRepository<ListaEspera, Long> {
       AND le.expiraEn < :ahora
 """)
     fun findExpiradas(ahora: LocalDateTime): List<ListaEspera>
+
+    @Modifying
+    @Query("DELETE FROM ListaEspera l WHERE l.fechaHora < :ahora")
+    fun deleteByFechaHoraBefore(@Param("ahora") ahora: LocalDateTime): Int
 
 }
