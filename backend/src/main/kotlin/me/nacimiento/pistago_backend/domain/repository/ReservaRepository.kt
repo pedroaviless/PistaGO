@@ -3,12 +3,15 @@ package me.nacimiento.pistago_backend.domain.repository
 import me.nacimiento.pistago_backend.domain.entity.Reserva
 import me.nacimiento.pistago_backend.domain.enums.EstadoReserva
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
+import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
 
 @Repository
 interface ReservaRepository : JpaRepository<Reserva, Long> {
+
     fun findByUsuarioId(usuarioId: Long): List<Reserva>
     fun findByPistaIdAndEstado(pistaId: Long, estado: EstadoReserva): List<Reserva>
     fun findByUsuarioIdAndEstado(usuarioId: Long, estado: EstadoReserva): List<Reserva>
@@ -67,4 +70,22 @@ interface ReservaRepository : JpaRepository<Reserva, Long> {
         nativeQuery = true
     )
     fun reservasPorDiaSemana(): List<Array<Any>>
+
+    // ===== Transición automática a EXPIRADA =====
+
+    @Modifying
+    @Query(
+        value = """
+            UPDATE reservas 
+            SET estado = :nuevoEstado, updated_at = NOW() 
+            WHERE estado = :estadoActual 
+            AND fecha_hora + (duracion_min || ' minutes')::INTERVAL < :ahora
+        """,
+        nativeQuery = true
+    )
+    fun marcarReservasExpiradas(
+        @Param("nuevoEstado") nuevoEstado: String,
+        @Param("estadoActual") estadoActual: String,
+        @Param("ahora") ahora: LocalDateTime
+    ): Int
 }
